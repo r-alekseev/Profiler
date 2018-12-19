@@ -1,6 +1,11 @@
 # Profiler.Net
 Minimalistic profiling library for .NET
 
+| master  | develop |
+| ------------- | ------------- |
+| [![Build Status](https://api.travis-ci.com/r-alekseev/Profiler.Net.svg?branch=master)](https://travis-ci.com/r-alekseev/Profiler.Net)  | [![Build Status](https://api.travis-ci.com/r-alekseev/Profiler.Net.svg?branch=develop)](https://travis-ci.com/r-alekseev/Profiler.Net)  |
+
+
 ## Usage
 
 ### Sequential
