@@ -25,11 +25,11 @@ namespace Profiler.NLog.Demo
 
         private static void DoWork(ISectionProvider profiler)
         {
-            using (profiler.Section("dowork"))
+            using (var section = profiler.Section("dowork"))
             {
                 Thread.Sleep(123);
 
-                DoPartOfWork(profiler);
+                DoPartOfWork(section);
 
                 Thread.Sleep(123);
             }
