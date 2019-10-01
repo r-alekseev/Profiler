@@ -106,7 +106,7 @@ namespace Profiler.Tests
             //  section.one
 
             // metrics:
-            //  section.one                 : 1
+            //  section.one                      : 1
             //  section.one -> child.{number}    : 3
         }
 

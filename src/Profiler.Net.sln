@@ -1,11 +1,15 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 15
-VisualStudioVersion = 15.0.27703.2042
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.29215.179
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Profiler", "Profiler\Profiler.csproj", "{8E953EAC-EA4D-4315-BBCA-5D65AAD48EFC}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Profiler", "Profiler\Profiler.csproj", "{8E953EAC-EA4D-4315-BBCA-5D65AAD48EFC}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Profiler.Tests", "Profiler.Tests\Profiler.Tests.csproj", "{EC9A5733-B9CA-45FB-BC22-4597254D8A3C}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Profiler.Tests", "Profiler.Tests\Profiler.Tests.csproj", "{EC9A5733-B9CA-45FB-BC22-4597254D8A3C}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Profiler.Demo.Stopwatch", "Profiler.Demo.Stopwatch\Profiler.Demo.Stopwatch.csproj", "{E295723D-B8A6-4603-8C3E-3CA42CB16FD4}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Profiler.UnitTests", "Profiler.UnitTests\Profiler.UnitTests.csproj", "{CDE6F808-4CE9-4A00-B759-140D8AF6C28A}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -21,6 +25,14 @@ Global
 		{EC9A5733-B9CA-45FB-BC22-4597254D8A3C}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{EC9A5733-B9CA-45FB-BC22-4597254D8A3C}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{EC9A5733-B9CA-45FB-BC22-4597254D8A3C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{E295723D-B8A6-4603-8C3E-3CA42CB16FD4}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E295723D-B8A6-4603-8C3E-3CA42CB16FD4}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E295723D-B8A6-4603-8C3E-3CA42CB16FD4}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E295723D-B8A6-4603-8C3E-3CA42CB16FD4}.Release|Any CPU.Build.0 = Release|Any CPU
+		{CDE6F808-4CE9-4A00-B759-140D8AF6C28A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{CDE6F808-4CE9-4A00-B759-140D8AF6C28A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{CDE6F808-4CE9-4A00-B759-140D8AF6C28A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{CDE6F808-4CE9-4A00-B759-140D8AF6C28A}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
