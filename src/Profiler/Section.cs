@@ -1,9 +1,12 @@
 ﻿using System;
+using System.Threading;
 
 namespace Profiler
 {
     internal class Section : ISection
     {
+        private readonly int _threadId = Thread.CurrentThread.ManagedThreadId;
+
         private readonly ISectionProvider _sectionProvider;
 
         private readonly ITimeMeasure _timeMeasure;
@@ -42,12 +45,20 @@ namespace Profiler
         }
 
         public bool InUse => _inUse;
+        public string Format => _format;
+        public ITimeMeasure TimeMeasure => _timeMeasure;
+        public int ThreadId => _threadId;
+
+        public void Free()
+        {
+            TimeSpan elapsed = _timeMeasure.Pause();
+            _traceWriter.Write(_threadId, elapsed, _format, _args);
+            _inUse = false;
+        }
 
         public void Dispose()
         {
-            TimeSpan elapsed = _timeMeasure.Pause();
-            _traceWriter.Write(elapsed, _format, _args);
-            _inUse = false;
+            Free();
         }
 
         ISection ISectionProvider.Section(string format, params object[] args)

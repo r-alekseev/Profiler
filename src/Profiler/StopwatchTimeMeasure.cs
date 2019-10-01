@@ -14,7 +14,7 @@ namespace Profiler
             _stopwatch = new Stopwatch();
         }
 
-        public TimeSpan? Total => _stopwatch.Elapsed;
+        public TimeSpan Total => _stopwatch.Elapsed;
 
         public TimeSpan Pause()
         {

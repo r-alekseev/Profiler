@@ -5,28 +5,44 @@ using Xunit;
 
 namespace Profiler.Tests
 {
-    class TestTimeMeasure : ITimeMeasure
+    class StubTimeMeasure : ITimeMeasure
     {
-        private Func<TimeSpan> _getElapsed;
+        private readonly Func<TimeSpan> _getElapsed;
 
-        public TestTimeMeasure(Func<TimeSpan> getElapsed)
+        public StubTimeMeasure(Func<TimeSpan> getElapsed)
         {
             _getElapsed = getElapsed;
         }
 
-        public TimeSpan? Total => throw new NotImplementedException();
+        public TimeSpan Total { get; private set; }
 
-        public TimeSpan Pause() => _getElapsed();
+        public TimeSpan Pause()
+        {
+            var elapsed = _getElapsed();
+            Total += elapsed;
+            return elapsed;
+        }
+
         public void Start() { }
     }
 
-    class TestTraceWriter : ITraceWriter
+    class StubTraceWriter : ITraceWriter
     {
         public readonly List<(TimeSpan Elapsed, string Format, object[] Args)> List = new List<(TimeSpan, string, object[])>();
 
-        public void Write(TimeSpan elapsed, string format, params object[] args)
+        public void Write(int threadId, TimeSpan elapsed, string format, params object[] args)
         {
             List.Add((elapsed, format, args));
+        }
+    }
+
+    class StubMetricsWriter : IMetricWriter
+    {
+        public readonly List<(TimeSpan Elapsed, string Format)> List = new List<(TimeSpan, string)>();
+
+        public void Write(int threadId, TimeSpan elapsed, string format)
+        {
+            List.Add((elapsed, format));
         }
     }
 
@@ -37,7 +53,7 @@ namespace Profiler.Tests
         {
             Should.Throw<ArgumentNullException>(() =>
             {
-                new SectionProvider(null, new TestTraceWriter());
+                new SectionProvider(null, new StubTraceWriter(), new StubMetricsWriter());
             });
         }
 
@@ -46,7 +62,16 @@ namespace Profiler.Tests
         {
             Should.Throw<ArgumentNullException>(() =>
             {
-                new SectionProvider(() => new TestTimeMeasure(() => TimeSpan.Zero), null);
+                new SectionProvider(() => new StubTimeMeasure(() => TimeSpan.Zero), null, new StubMetricsWriter());
+            });
+        }
+
+        [Fact]
+        public void SectionProvider_Create_NullMetricWriter_ShouldThrowArgumentNullException()
+        {
+            Should.Throw<ArgumentNullException>(() =>
+            {
+                new SectionProvider(() => new StubTimeMeasure(() => TimeSpan.Zero), new StubTraceWriter(), null);
             });
         }
 
@@ -54,8 +79,9 @@ namespace Profiler.Tests
         public void SectionProvider_CreateSection_NullFormat_ShouldThrowArgumentException()
         {
             var sectionProvider = new SectionProvider(
-                () => new TestTimeMeasure(() => TimeSpan.Zero), 
-                new TestTraceWriter());
+                () => new StubTimeMeasure(() => TimeSpan.Zero), 
+                new StubTraceWriter(),
+                new StubMetricsWriter());
 
             Should.Throw<ArgumentException>(() =>
             {
@@ -67,8 +93,9 @@ namespace Profiler.Tests
         public void SectionProvider_CreateSection_EmptyFormat_ShouldThrowArgumentException()
         {
             var sectionProvider = new SectionProvider(
-                () => new TestTimeMeasure(() => TimeSpan.Zero),
-                new TestTraceWriter());
+                () => new StubTimeMeasure(() => TimeSpan.Zero),
+                new StubTraceWriter(),
+                new StubMetricsWriter());
 
             Should.Throw<ArgumentException>(() =>
             {
@@ -80,8 +107,9 @@ namespace Profiler.Tests
         public void SectionProvider_CreateSection_AlreadyInUse_ShouldThrowArgumentException()
         {
             var sectionProvider = new SectionProvider(
-                () => new TestTimeMeasure(() => TimeSpan.Zero),
-                new TestTraceWriter());
+                () => new StubTimeMeasure(() => TimeSpan.Zero),
+                new StubTraceWriter(),
+                new StubMetricsWriter());
 
             // first usage of 'test'
             using (sectionProvider.Section("test"))
@@ -100,8 +128,9 @@ namespace Profiler.Tests
         public void SectionProvider_CreateSection_ReuseAfterDispose_ShouldNotThrowExceptions()
         {
             var sectionProvider = new SectionProvider(
-                () => new TestTimeMeasure(() => TimeSpan.Zero),
-                new TestTraceWriter());
+                () => new StubTimeMeasure(() => TimeSpan.Zero),
+                new StubTraceWriter(),
+                new StubMetricsWriter());
 
             // first usage of 'test'
             using (sectionProvider.Section("test"))
@@ -118,8 +147,9 @@ namespace Profiler.Tests
         public void SectionProvider_CreateSection_UseSimilarNameForInnerSection_ShouldNotThrowExceptions()
         {
             var sectionProvider = new SectionProvider(
-                () => new TestTimeMeasure(() => TimeSpan.Zero),
-                new TestTraceWriter());
+                () => new StubTimeMeasure(() => TimeSpan.Zero),
+                new StubTraceWriter(),
+                new StubMetricsWriter());
 
             // usage of 'test'
             using (var section = sectionProvider.Section("test"))
@@ -134,12 +164,13 @@ namespace Profiler.Tests
         [Fact]
         public void SectionProvider_CreateAndDisposeSection_SingleTests()
         {
-            var traceWriter = new TestTraceWriter();
+            var traceWriter = new StubTraceWriter();
+            var metricWriter = new StubMetricsWriter();
 
             Func<TimeSpan> getElapsed = () => TimeSpan.FromMilliseconds(123);
-            Func<ITimeMeasure> getTimeMeasure = () => new TestTimeMeasure(getElapsed);
+            Func<ITimeMeasure> getTimeMeasure = () => new StubTimeMeasure(getElapsed);
 
-            var provider = new SectionProvider(getTimeMeasure, traceWriter);
+            var provider = new SectionProvider(getTimeMeasure, traceWriter, metricWriter);
 
             traceWriter.List.Count.ShouldBe(0);
 
@@ -151,20 +182,27 @@ namespace Profiler.Tests
             traceWriter.List.Count.ShouldBe(1);
             traceWriter.List[0].Elapsed.ShouldBe(TimeSpan.FromMilliseconds(123));
             traceWriter.List[0].Format.ShouldBe("section");
+
+            provider.Flush();
+
+            metricWriter.List.Count.ShouldBe(1);
+            metricWriter.List[0].Format.ShouldBe("section");
+            metricWriter.List[0].Elapsed.ShouldBe(TimeSpan.FromMilliseconds(123));
         }
 
         [Fact]
         public void SectionProvider_CreateAndDisposeSection_SequentionalTests()
         {
-            var traceWriter = new TestTraceWriter();
+            var traceWriter = new StubTraceWriter();
+            var metricWriter = new StubMetricsWriter();
 
             int index = 0;
             int[] milliseconds = new[] { 123, 45, 6 };
 
             Func<TimeSpan> getElapsed = () => TimeSpan.FromMilliseconds(milliseconds[index++]);
-            Func<ITimeMeasure> getTimeMeasure = () => new TestTimeMeasure(getElapsed);
+            Func<ITimeMeasure> getTimeMeasure = () => new StubTimeMeasure(getElapsed);
 
-            var provider = new SectionProvider(getTimeMeasure, traceWriter);
+            var provider = new SectionProvider(getTimeMeasure, traceWriter, metricWriter);
 
             traceWriter.List.Count.ShouldBe(0);
 
@@ -206,20 +244,31 @@ namespace Profiler.Tests
             traceWriter.List[2].Elapsed.ShouldBe(TimeSpan.FromMilliseconds(6));
             traceWriter.List[2].Format.ShouldBe("section.three");
             traceWriter.List[2].Args.Length.ShouldBe(0);
+
+            provider.Flush();
+
+            metricWriter.List.Count.ShouldBe(3);
+            metricWriter.List[0].Format.ShouldBe("section.one");
+            metricWriter.List[0].Elapsed.ShouldBe(TimeSpan.FromMilliseconds(123));
+            metricWriter.List[1].Format.ShouldBe("section.two");
+            metricWriter.List[1].Elapsed.ShouldBe(TimeSpan.FromMilliseconds(45));
+            metricWriter.List[2].Format.ShouldBe("section.three");
+            metricWriter.List[2].Elapsed.ShouldBe(TimeSpan.FromMilliseconds(6));
         }
 
         [Fact]
         public void SectionProvider_CreateAndDisposeSection_RepeatingTests()
         {
-            var traceWriter = new TestTraceWriter();
+            var traceWriter = new StubTraceWriter();
+            var metricWriter = new StubMetricsWriter();
 
             int index = 0;
             int[] milliseconds = new[] { 123, 45, 6 };
 
             Func<TimeSpan> getElapsed = () => TimeSpan.FromMilliseconds(milliseconds[index++]);
-            Func<ITimeMeasure> getTimeMeasure = () => new TestTimeMeasure(getElapsed);
+            Func<ITimeMeasure> getTimeMeasure = () => new StubTimeMeasure(getElapsed);
 
-            var provider = new SectionProvider(getTimeMeasure, traceWriter);
+            var provider = new SectionProvider(getTimeMeasure, traceWriter, metricWriter);
 
             traceWriter.List.Count.ShouldBe(0);
 
@@ -245,19 +294,26 @@ namespace Profiler.Tests
             traceWriter.List[2].Format.ShouldBe("section.{number}");
             traceWriter.List[2].Args.Length.ShouldBe(1);
             traceWriter.List[2].Args[0].ShouldBe(2);
+
+            provider.Flush();
+
+            metricWriter.List.Count.ShouldBe(1);
+            metricWriter.List[0].Format.ShouldBe("section.{number}");
+            metricWriter.List[0].Elapsed.ShouldBe(TimeSpan.FromMilliseconds(174));
         }
 
         [Fact]
         public void SectionProvider_CreateAndDisposeSection_WithChild_MetricsTests()
         {
-            var traceWriter = new TestTraceWriter();
+            var traceWriter = new StubTraceWriter();
+            var metricWriter = new StubMetricsWriter();
 
             int index = 0;
             int[] milliseconds = new[] { 123, 45 };
 
             Func<TimeSpan> getElapsed = () => TimeSpan.FromMilliseconds(milliseconds[index++]);
-            Func<ITimeMeasure> getTimeMeasure = () => new TestTimeMeasure(getElapsed);
-            var provider = new SectionProvider(getTimeMeasure, traceWriter);
+            Func<ITimeMeasure> getTimeMeasure = () => new StubTimeMeasure(getElapsed);
+            var provider = new SectionProvider(getTimeMeasure, traceWriter, metricWriter);
 
             traceWriter.List.Count.ShouldBe(0);
 
@@ -280,6 +336,14 @@ namespace Profiler.Tests
             traceWriter.List[0].Format.ShouldBe("outer -> inner");
             traceWriter.List[1].Elapsed.ShouldBe(TimeSpan.FromMilliseconds(45));
             traceWriter.List[1].Format.ShouldBe("outer");
+
+            provider.Flush();
+
+            metricWriter.List.Count.ShouldBe(2);
+            metricWriter.List[0].Format.ShouldBe("outer");
+            metricWriter.List[0].Elapsed.ShouldBe(TimeSpan.FromMilliseconds(45));
+            metricWriter.List[1].Format.ShouldBe("outer -> inner");
+            metricWriter.List[1].Elapsed.ShouldBe(TimeSpan.FromMilliseconds(123));
         }
 
     }

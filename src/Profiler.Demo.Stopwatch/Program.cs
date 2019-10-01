@@ -1,43 +1,65 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Threading;
-using System.Threading.Tasks;
 
 namespace Profiler.Demo.Stopwatch
 {
     class Program
     {
-        static async Task Main(string[] args)
+        static void Main(string[] args)
         {
             var provider = new SectionProvider(
                 getTimeMeasure: () => new StopwatchTimeMeasure(),
-                traceWriter: new ConsoleTraceWriter());
+                traceWriter: new ConsoleTraceWriter(),
+                metricWriter: new ConsoleMetricsWriter());
 
+            var threads = new List<Thread>();
             for (int i = 0; i < 3; i++)
             {
-                TimeSpan delay = TimeSpan.FromMilliseconds(i * 100);
-                using (var section = provider.Section("section.{i}.{delay}", i, delay))
+                var thread = new Thread(() =>
                 {
-                    Thread.Sleep(delay);
-
-                    for (int j = 0; j < 3; j++)
+                    TimeSpan delay = TimeSpan.FromMilliseconds(i * 100);
+                    using (var section = provider.Section("section.{i}.{delay}", i, delay))
                     {
-                        TimeSpan innerDelay = TimeSpan.FromMilliseconds(j * 10);
-                        using (section.Section("child.{j}.{innerDelay}", j, innerDelay))
+                        Thread.Sleep(delay);
+
+                        for (int j = 0; j < 3; j++)
                         {
-                            Thread.Sleep(innerDelay);
+                            TimeSpan innerDelay = TimeSpan.FromMilliseconds(j * 10);
+                            using (section.Section("child.{j}.{innerDelay}", j, innerDelay))
+                            {
+                                Thread.Sleep(innerDelay);
+                            }
                         }
                     }
-                }
+                });
+                threads.Add(thread);
+                thread.Start();
             }
+
+            foreach (var thread in threads)
+            {
+                thread.Join();
+            }
+
+            provider.Flush();
 
             Console.ReadKey();
         }
 
         public class ConsoleTraceWriter : ITraceWriter
         {
-            public void Write(TimeSpan elapsed, string format, params object[] args)
+            public void Write(int threadId, TimeSpan elapsed, string format, params object[] args)
             {
-                Console.WriteLine($"{elapsed}: {format} ({string.Join(",", args)})");
+                Console.WriteLine($"[{threadId}] {elapsed}: {format} ({string.Join(",", args)})");
+            }
+        }
+
+        public class ConsoleMetricsWriter : IMetricWriter
+        {
+            public void Write(int threadId, TimeSpan elapsed, string format)
+            {
+                Console.WriteLine($"[{threadId}] {format}: {elapsed}");
             }
         }
     }

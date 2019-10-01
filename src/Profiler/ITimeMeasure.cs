@@ -6,6 +6,6 @@ namespace Profiler
     {
         void Start();
         TimeSpan Pause();
-        TimeSpan? Total { get; }
+        TimeSpan Total { get; }
     }
 }
