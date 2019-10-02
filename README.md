@@ -8,25 +8,28 @@ Minimalistic profiling library for .NET
 ```csharp
 using (provider.Section("section.one"))
 {
+    // delay 1 ms
 }
 
 using (provider.Section("section.two"))
 {
+    // delay 1 ms
 }
 
 using (provider.Section("section.three"))
 {
+    // delay 1 ms
 }
 
-// log:
-//  section.one
-//  section.two
-//  section.three
+// trace:
+//  section.one     : 1 ms
+//  section.two     : 1 ms
+//  section.three   : 1 ms
 
 // metrics:
-//  section.one     : 1
-//  section.two     : 1
-//  section.three   : 1
+//  section.one     : 1 ms
+//  section.two     : 1 ms
+//  section.three   : 1 ms
 ```
 
 ### Repeating
@@ -36,35 +39,39 @@ for (int i = 0; i < 3; i++)
 {
     using (provider.Section("section.{number}", i))
     {
+        // delay 1 ms
     }
 }
 
-// log:
-//  section.0
-//  section.1
-//  section.2
+// trace:
+//  section.0           : 1 ms
+//  section.1           : 1 ms
+//  section.2           : 1 ms
 
 // metrics:
-//  section.{number}     : 3
+//  section.{number}    : 3 ms
 ```
 
 ### Childs
 
 ```csharp
-using (var section = provider.Section("section.one"))
+using (var section = provider.Section("section"))
 {
-    using (section.Section("child.one"))
+    using (section.Section("child"))
     {
+        // delay 1 ms
     }
+
+    // delay 1 ms
 }
 
-// log:
-//  section.one -> child.one
-//  section.one
+// trace:
+//  section -> child        : 1 ms
+//  section                 : 2 ms
 
 // metrics:
-//  section.one                 : 1
-//  section.one -> child.one    : 1
+//  section                 : 2 ms
+//  section -> child        : 1 ms
 ```
 
 ### Passing Childs
@@ -74,23 +81,26 @@ void Inner(ISection section, int i)
 {
     using (section.Section("child.{number}", i))
     {
+        // delay 1 ms
     }
 }
 
-using (var section = provider.Section("section.one"))
+using (var section = provider.Section("section"))
 {
     Inner(section, 0);
     Inner(section, 1);
     Inner(section, 2);
+
+    // delay 1 ms
 }
 
-// log:
-//  section.one -> child.0
-//  section.one -> child.1
-//  section.one -> child.2
-//  section.one
+// trace:
+//  section -> child.0          : 1 ms
+//  section -> child.1          : 1 ms
+//  section -> child.2          : 1 ms
+//  section                     : 4 ms
 
 // metrics:
-//  section.one                 : 1
-//  section.one -> child.{number}    : 3
+//  section                     : 4 ms
+//  section -> child.{number}   : 3 ms
 ```

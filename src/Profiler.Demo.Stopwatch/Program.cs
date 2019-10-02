@@ -13,6 +13,8 @@ namespace Profiler.Demo.Stopwatch
                 traceWriter: new ConsoleTraceWriter(),
                 metricWriter: new ConsoleMetricsWriter());
 
+            Console.WriteLine("trace:");
+
             var threads = new List<Thread>();
             for (int i = 0; i < 3; i++)
             {
@@ -42,7 +44,9 @@ namespace Profiler.Demo.Stopwatch
                 thread.Join();
             }
 
-            provider.Flush();
+            Console.WriteLine();
+            Console.WriteLine("metrics:");
+            provider.WriteMetrics();
 
             Console.ReadKey();
         }
@@ -51,15 +55,15 @@ namespace Profiler.Demo.Stopwatch
         {
             public void Write(int threadId, TimeSpan elapsed, string format, params object[] args)
             {
-                Console.WriteLine($"[{threadId}] {elapsed}: {format} ({string.Join(",", args)})");
+                Console.WriteLine($"[thread # {threadId}] {format}: {elapsed.TotalMilliseconds} ms");
             }
         }
 
         public class ConsoleMetricsWriter : IMetricWriter
         {
-            public void Write(int threadId, TimeSpan elapsed, string format)
+            public void Write(int threadId, TimeSpan elapsed, int count, string format)
             {
-                Console.WriteLine($"[{threadId}] {format}: {elapsed}");
+                Console.WriteLine($"[thread # {threadId}] {format}: {elapsed.TotalMilliseconds} ms ({count} times)");
             }
         }
     }

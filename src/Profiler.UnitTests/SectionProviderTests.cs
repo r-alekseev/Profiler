@@ -23,7 +23,9 @@ namespace Profiler.Tests
             return elapsed;
         }
 
-        public void Start() { }
+        public void Start()
+        {
+        }
     }
 
     class StubTraceWriter : ITraceWriter
@@ -38,11 +40,11 @@ namespace Profiler.Tests
 
     class StubMetricsWriter : IMetricWriter
     {
-        public readonly List<(TimeSpan Elapsed, string Format)> List = new List<(TimeSpan, string)>();
+        public readonly List<(TimeSpan Elapsed, int Count, string Format)> List = new List<(TimeSpan, int, string)>();
 
-        public void Write(int threadId, TimeSpan elapsed, string format)
+        public void Write(int threadId, TimeSpan elapsed, int count, string format)
         {
-            List.Add((elapsed, format));
+            List.Add((elapsed, count, format));
         }
     }
 
@@ -183,11 +185,12 @@ namespace Profiler.Tests
             traceWriter.List[0].Elapsed.ShouldBe(TimeSpan.FromMilliseconds(123));
             traceWriter.List[0].Format.ShouldBe("section");
 
-            provider.Flush();
+            provider.WriteMetrics();
 
             metricWriter.List.Count.ShouldBe(1);
             metricWriter.List[0].Format.ShouldBe("section");
             metricWriter.List[0].Elapsed.ShouldBe(TimeSpan.FromMilliseconds(123));
+            metricWriter.List[0].Count.ShouldBe(1);
         }
 
         [Fact]
@@ -245,15 +248,18 @@ namespace Profiler.Tests
             traceWriter.List[2].Format.ShouldBe("section.three");
             traceWriter.List[2].Args.Length.ShouldBe(0);
 
-            provider.Flush();
+            provider.WriteMetrics();
 
             metricWriter.List.Count.ShouldBe(3);
             metricWriter.List[0].Format.ShouldBe("section.one");
             metricWriter.List[0].Elapsed.ShouldBe(TimeSpan.FromMilliseconds(123));
+            metricWriter.List[0].Count.ShouldBe(1);
             metricWriter.List[1].Format.ShouldBe("section.two");
             metricWriter.List[1].Elapsed.ShouldBe(TimeSpan.FromMilliseconds(45));
+            metricWriter.List[1].Count.ShouldBe(1);
             metricWriter.List[2].Format.ShouldBe("section.three");
             metricWriter.List[2].Elapsed.ShouldBe(TimeSpan.FromMilliseconds(6));
+            metricWriter.List[2].Count.ShouldBe(1);
         }
 
         [Fact]
@@ -295,21 +301,22 @@ namespace Profiler.Tests
             traceWriter.List[2].Args.Length.ShouldBe(1);
             traceWriter.List[2].Args[0].ShouldBe(2);
 
-            provider.Flush();
+            provider.WriteMetrics();
 
             metricWriter.List.Count.ShouldBe(1);
             metricWriter.List[0].Format.ShouldBe("section.{number}");
             metricWriter.List[0].Elapsed.ShouldBe(TimeSpan.FromMilliseconds(174));
+            metricWriter.List[0].Count.ShouldBe(3);
         }
 
         [Fact]
-        public void SectionProvider_CreateAndDisposeSection_WithChild_MetricsTests()
+        public void SectionProvider_CreateAndDisposeSection_WithChilds_MetricsTests()
         {
             var traceWriter = new StubTraceWriter();
             var metricWriter = new StubMetricsWriter();
 
             int index = 0;
-            int[] milliseconds = new[] { 123, 45 };
+            int[] milliseconds = new[] { 123, 123, 300 };
 
             Func<TimeSpan> getElapsed = () => TimeSpan.FromMilliseconds(milliseconds[index++]);
             Func<ITimeMeasure> getTimeMeasure = () => new StubTimeMeasure(getElapsed);
@@ -327,24 +334,38 @@ namespace Profiler.Tests
                 }
 
                 traceWriter.List.Count.ShouldBe(1);
-                traceWriter.List[0].Elapsed.ShouldBe(TimeSpan.FromMilliseconds(123));
                 traceWriter.List[0].Format.ShouldBe("outer -> inner");
+                traceWriter.List[0].Elapsed.ShouldBe(TimeSpan.FromMilliseconds(123));
+
+                using (section.Section("inner"))
+                {
+                    traceWriter.List.Count.ShouldBe(1);
+                }
+
+                traceWriter.List.Count.ShouldBe(2);
+                traceWriter.List[0].Format.ShouldBe("outer -> inner");
+                traceWriter.List[0].Elapsed.ShouldBe(TimeSpan.FromMilliseconds(123));
+                traceWriter.List[1].Format.ShouldBe("outer -> inner");
+                traceWriter.List[1].Elapsed.ShouldBe(TimeSpan.FromMilliseconds(123));
             }
 
-            traceWriter.List.Count.ShouldBe(2);
-            traceWriter.List[0].Elapsed.ShouldBe(TimeSpan.FromMilliseconds(123));
+            traceWriter.List.Count.ShouldBe(3);
             traceWriter.List[0].Format.ShouldBe("outer -> inner");
-            traceWriter.List[1].Elapsed.ShouldBe(TimeSpan.FromMilliseconds(45));
-            traceWriter.List[1].Format.ShouldBe("outer");
+            traceWriter.List[0].Elapsed.ShouldBe(TimeSpan.FromMilliseconds(123));
+            traceWriter.List[1].Format.ShouldBe("outer -> inner");
+            traceWriter.List[1].Elapsed.ShouldBe(TimeSpan.FromMilliseconds(123));
+            traceWriter.List[2].Format.ShouldBe("outer");
+            traceWriter.List[2].Elapsed.ShouldBe(TimeSpan.FromMilliseconds(300));
 
-            provider.Flush();
+            provider.WriteMetrics();
 
             metricWriter.List.Count.ShouldBe(2);
             metricWriter.List[0].Format.ShouldBe("outer");
-            metricWriter.List[0].Elapsed.ShouldBe(TimeSpan.FromMilliseconds(45));
+            metricWriter.List[0].Elapsed.ShouldBe(TimeSpan.FromMilliseconds(300));
+            metricWriter.List[0].Count.ShouldBe(1);
             metricWriter.List[1].Format.ShouldBe("outer -> inner");
-            metricWriter.List[1].Elapsed.ShouldBe(TimeSpan.FromMilliseconds(123));
+            metricWriter.List[1].Elapsed.ShouldBe(TimeSpan.FromMilliseconds(246));
+            metricWriter.List[1].Count.ShouldBe(2);
         }
-
     }
 }

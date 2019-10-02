@@ -60,7 +60,7 @@ namespace Profiler
             return section;
         }
 
-        public void Flush()
+        public void WriteMetrics()
         {
             Section[] sections;
             lock (_globalLocker)
@@ -70,7 +70,11 @@ namespace Profiler
 
             foreach (var section in sections)
             {
-                _metricWriter.Write(section.ThreadId, section.TimeMeasure.Total, section.Format);
+                _metricWriter.Write(
+                    threadId: section.ThreadId,
+                    elapsed: section.TimeMeasure.Total,
+                    count: section.Count,
+                    format: section.Format);
             }
         }
     }

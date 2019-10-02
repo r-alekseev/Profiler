@@ -9,6 +9,8 @@ namespace Profiler
 
         private readonly ISectionProvider _sectionProvider;
 
+        private int _count;
+
         private readonly ITimeMeasure _timeMeasure;
         private readonly ITraceWriter _traceWriter;
 
@@ -47,10 +49,12 @@ namespace Profiler
         public bool InUse => _inUse;
         public string Format => _format;
         public ITimeMeasure TimeMeasure => _timeMeasure;
+        public int Count => _count;
         public int ThreadId => _threadId;
 
         public void Free()
         {
+            _count += 1;
             TimeSpan elapsed = _timeMeasure.Pause();
             _traceWriter.Write(_threadId, elapsed, _format, _args);
             _inUse = false;
