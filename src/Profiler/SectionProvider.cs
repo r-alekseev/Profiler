@@ -9,19 +9,19 @@ namespace Profiler
         private readonly Func<ITimeMeasure> _getTimeMeasure;
 
         private readonly ITraceWriter _traceWriter;
-        private readonly IMetricWriter _metricWriter;
+        private readonly IReportWriter _reportWriter;
 
         private readonly object _globalLocker = new object();
         private readonly List<Section> _global;
 
         private readonly ThreadLocal<Dictionary<string, Section>> _local;
 
-        public SectionProvider(Func<ITimeMeasure> getTimeMeasure, ITraceWriter traceWriter, IMetricWriter metricWriter)
+        public SectionProvider(Func<ITimeMeasure> getTimeMeasure, ITraceWriter traceWriter, IReportWriter reportWriter)
         {
             _getTimeMeasure = getTimeMeasure ?? throw new ArgumentNullException(nameof(getTimeMeasure));
 
             _traceWriter = traceWriter ?? throw new ArgumentNullException(nameof(traceWriter));
-            _metricWriter = metricWriter ?? throw new ArgumentNullException(nameof(metricWriter));
+            _reportWriter = reportWriter ?? throw new ArgumentNullException(nameof(reportWriter));
 
             _global = new List<Section>();
             _local = new ThreadLocal<Dictionary<string, Section>>(() => new Dictionary<string, Section>());
@@ -60,7 +60,7 @@ namespace Profiler
             return section;
         }
 
-        public void WriteMetrics()
+        public void WriteReport()
         {
             Section[] sections;
             lock (_globalLocker)
@@ -70,7 +70,7 @@ namespace Profiler
 
             foreach (var section in sections)
             {
-                _metricWriter.Write(
+                _reportWriter.Write(
                     threadId: section.ThreadId,
                     elapsed: section.TimeMeasure.Total,
                     count: section.Count,

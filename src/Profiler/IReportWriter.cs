@@ -2,7 +2,7 @@
 
 namespace Profiler
 {
-    public interface IMetricWriter
+    public interface IReportWriter
     {
         void Write(int threadId, TimeSpan elapsed, int count, string format);
     }

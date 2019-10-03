@@ -11,7 +11,7 @@ namespace Profiler.Demo.Stopwatch
             var provider = new SectionProvider(
                 getTimeMeasure: () => new StopwatchTimeMeasure(),
                 traceWriter: new ConsoleTraceWriter(),
-                metricWriter: new ConsoleMetricsWriter());
+                reportWriter: new ConsoleReportWriter());
 
             Console.WriteLine("trace:");
 
@@ -46,7 +46,7 @@ namespace Profiler.Demo.Stopwatch
 
             Console.WriteLine();
             Console.WriteLine("metrics:");
-            provider.WriteMetrics();
+            provider.WriteReport();
 
             Console.ReadKey();
         }
@@ -59,7 +59,7 @@ namespace Profiler.Demo.Stopwatch
             }
         }
 
-        public class ConsoleMetricsWriter : IMetricWriter
+        public class ConsoleReportWriter : IReportWriter
         {
             public void Write(int threadId, TimeSpan elapsed, int count, string format)
             {
