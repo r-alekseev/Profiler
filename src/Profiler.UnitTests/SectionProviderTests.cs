@@ -32,9 +32,9 @@ namespace Profiler.Tests
     {
         public readonly List<(TimeSpan Elapsed, string Format, object[] Args)> List = new List<(TimeSpan, string, object[])>();
 
-        public void Write(int threadId, TimeSpan elapsed, string format, params object[] args)
+        public void Write(int threadId, TimeSpan elapsed, string[] chain, params object[] args)
         {
-            List.Add((elapsed, format, args));
+            List.Add((elapsed, string.Join(" -> ", chain), args));
         }
     }
 
@@ -42,9 +42,9 @@ namespace Profiler.Tests
     {
         public readonly List<(TimeSpan Elapsed, int Count, string Format)> List = new List<(TimeSpan, int, string)>();
 
-        public void Write(int threadId, TimeSpan elapsed, int count, string format)
+        public void Write(int threadId, TimeSpan elapsed, int count, string[] chain)
         {
-            List.Add((elapsed, count, format));
+            List.Add((elapsed, count, string.Join(" -> ", chain)));
         }
     }
 

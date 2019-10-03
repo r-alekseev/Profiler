@@ -4,6 +4,6 @@ namespace Profiler
 {
     public interface IReportWriter
     {
-        void Write(int threadId, TimeSpan elapsed, int count, string format);
+        void Write(int threadId, TimeSpan elapsed, int count, string[] chain);
     }
 }

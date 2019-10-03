@@ -53,17 +53,17 @@ namespace Profiler.Demo.Stopwatch
 
         public class ConsoleTraceWriter : ITraceWriter
         {
-            public void Write(int threadId, TimeSpan elapsed, string format, params object[] args)
+            public void Write(int threadId, TimeSpan elapsed, string[] chain, params object[] args)
             {
-                Console.WriteLine($"[thread # {threadId}] {format}: {elapsed.TotalMilliseconds} ms");
+                Console.WriteLine($"[thread # {threadId}] {string.Join(" -> ", chain)}: {elapsed.TotalMilliseconds} ms");
             }
         }
 
         public class ConsoleReportWriter : IReportWriter
         {
-            public void Write(int threadId, TimeSpan elapsed, int count, string format)
+            public void Write(int threadId, TimeSpan elapsed, int count, string[] chain)
             {
-                Console.WriteLine($"[thread # {threadId}] {format}: {elapsed.TotalMilliseconds} ms ({count} times)");
+                Console.WriteLine($"[thread # {threadId}] {string.Join(" -> ", chain)}: {elapsed.TotalMilliseconds} ms ({count} times)");
             }
         }
     }

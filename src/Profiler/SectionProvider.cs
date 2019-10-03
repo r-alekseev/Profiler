@@ -14,7 +14,7 @@ namespace Profiler
         private readonly object _globalLocker = new object();
         private readonly List<Section> _global;
 
-        private readonly ThreadLocal<Dictionary<string, Section>> _local;
+        private readonly ThreadLocal<Dictionary<CollectionKey, Section>> _local;
 
         public SectionProvider(Func<ITimeMeasure> getTimeMeasure, ITraceWriter traceWriter, IReportWriter reportWriter)
         {
@@ -24,30 +24,36 @@ namespace Profiler
             _reportWriter = reportWriter ?? throw new ArgumentNullException(nameof(reportWriter));
 
             _global = new List<Section>();
-            _local = new ThreadLocal<Dictionary<string, Section>>(() => new Dictionary<string, Section>());
+            _local = new ThreadLocal<Dictionary<CollectionKey, Section>>(() => new Dictionary<CollectionKey, Section>());
         }
 
-        public ISection Section(string format, params object[] args)
+        internal ISection Section(string[] chain, params object[] args)
         {
-            if (string.IsNullOrWhiteSpace(format))
+            if (chain == null) throw new ArgumentNullException(nameof(chain));
+            if (chain.Length == 0) throw new ArgumentException("empty collection", nameof(chain));
+
+            for (int i = 0; i < chain.Length; i++)
             {
-                throw new ArgumentException("argument is null or whitespace", nameof(format));
+                if (string.IsNullOrWhiteSpace(chain[i]))
+                    throw new ArgumentException("at least one of chain items is null or whitespace", nameof(chain));
             }
+
+            var key = new CollectionKey(chain);
 
             var sections = _local.Value;
 
-            if (sections.TryGetValue(format, out Section section))
+            if (sections.TryGetValue(key, out Section section))
             {
                 if (section.InUse)
                 {
-                    throw new ArgumentException($"section '{format}' already in use", nameof(format));
+                    throw new ArgumentException($"section '{string.Format(" -> ", chain)}' already in use", nameof(chain));
                 }
             }
             else
             {
                 ITimeMeasure timeMeasure = _getTimeMeasure();
-                section = new Section(this, timeMeasure, _traceWriter, format);
-                sections.Add(format, section);
+                section = new Section(this, timeMeasure, _traceWriter, chain);
+                sections.Add(key, section);
 
                 lock (_globalLocker)
                 {
@@ -58,6 +64,13 @@ namespace Profiler
             section.Enter(args);
 
             return section;
+        }
+
+        public ISection Section(string format, params object[] args)
+        {
+            return Section(
+                chain: new[] { format }, 
+                args: args);
         }
 
         public void WriteReport()
@@ -74,7 +87,7 @@ namespace Profiler
                     threadId: section.ThreadId,
                     elapsed: section.TimeMeasure.Total,
                     count: section.Count,
-                    format: section.Format);
+                    chain: section.Chain);
             }
         }
     }
