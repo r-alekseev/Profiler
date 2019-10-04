@@ -1,5 +1,4 @@
-﻿using Profiler;
-using System;
+﻿using System;
 using System.Threading;
 
 namespace Profiler

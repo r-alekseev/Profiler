@@ -2,6 +2,7 @@
 
 namespace Profiler
 {
+    // ability to store collection of string as key in dictionary
     internal class CollectionKey
     {
         private readonly string[] _chain;
