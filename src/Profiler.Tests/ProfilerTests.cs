@@ -128,6 +128,10 @@ namespace Profiler.Tests
                 {
                 }
 
+                public void Free()
+                {
+                }
+
                 public ISection Section(string format, params object[] args)
                 {
                     return new StubSection();

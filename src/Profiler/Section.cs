@@ -49,10 +49,13 @@ namespace Profiler
 
         public void Free()
         {
-            _count += 1;
-            TimeSpan elapsed = _timeMeasure.Pause();
-            _traceWriter.Write(_threadId, elapsed, _chain, _args);
-            _inUse = false;
+            if (_inUse)
+            {
+                _count += 1;
+                TimeSpan elapsed = _timeMeasure.Pause();
+                _traceWriter.Write(_threadId, elapsed, _chain, _args);
+                _inUse = false;
+            }
         }
 
         public void Dispose()
