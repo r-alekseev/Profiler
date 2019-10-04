@@ -63,7 +63,7 @@ namespace Profiler
             Free();
         }
 
-        ISection ISectionProvider.Section(string format, params object[] args)
+        ISection ISection.Section(string format, params object[] args)
         {
             string[] chain = CombineChain(format);
 

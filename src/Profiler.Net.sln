@@ -7,9 +7,11 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Profiler", "Profiler\Profil
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Profiler.Tests", "Profiler.Tests\Profiler.Tests.csproj", "{EC9A5733-B9CA-45FB-BC22-4597254D8A3C}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Profiler.Demo.Stopwatch", "Profiler.Demo.Stopwatch\Profiler.Demo.Stopwatch.csproj", "{E295723D-B8A6-4603-8C3E-3CA42CB16FD4}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Profiler.Demo.Stopwatch", "Profiler.Demo.Stopwatch\Profiler.Demo.Stopwatch.csproj", "{E295723D-B8A6-4603-8C3E-3CA42CB16FD4}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Profiler.UnitTests", "Profiler.UnitTests\Profiler.UnitTests.csproj", "{CDE6F808-4CE9-4A00-B759-140D8AF6C28A}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Profiler.UnitTests", "Profiler.UnitTests\Profiler.UnitTests.csproj", "{CDE6F808-4CE9-4A00-B759-140D8AF6C28A}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Profiler.DependencyInjection", "Profiler.DependencyInjection\Profiler.DependencyInjection.csproj", "{7FB8AC4A-39C1-4990-A793-602FC0CF34D7}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -33,6 +35,10 @@ Global
 		{CDE6F808-4CE9-4A00-B759-140D8AF6C28A}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{CDE6F808-4CE9-4A00-B759-140D8AF6C28A}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{CDE6F808-4CE9-4A00-B759-140D8AF6C28A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{7FB8AC4A-39C1-4990-A793-602FC0CF34D7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{7FB8AC4A-39C1-4990-A793-602FC0CF34D7}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7FB8AC4A-39C1-4990-A793-602FC0CF34D7}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{7FB8AC4A-39C1-4990-A793-602FC0CF34D7}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
