@@ -5,11 +5,16 @@ namespace Profiler.Demo.Stopwatch
 {
     public static class ContainerBootstrapper
     {
-        public static ServiceProvider Build(IFactory factory)
+        public static ServiceProvider Build()
         {
             var serviceCollection = new ServiceCollection();
 
-            serviceCollection.AddProfiler(factory);
+            serviceCollection.AddProfiler(settings =>
+            {
+                settings.UseStopwatchTimeMeasure();
+                settings.UseConsoleTraceWriter();
+                settings.UseConsoleReportWriter();
+            });
 
             return serviceCollection.BuildServiceProvider();
         }

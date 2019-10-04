@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Threading;
 using Microsoft.Extensions.DependencyInjection;
@@ -9,7 +10,7 @@ namespace Profiler.Demo.Stopwatch
     {
         static void Main(string[] args)
         {
-            var serviceProvider = ContainerBootstrapper.Build(new Factory());
+            var serviceProvider = ContainerBootstrapper.Build();
 
             var provider = serviceProvider.GetService<ISectionProvider>();
 
@@ -57,26 +58,19 @@ namespace Profiler.Demo.Stopwatch
 
         public class ConsoleReportWriter : IReportWriter
         {
-            private readonly List<ISectionMetrics> _list = new List<ISectionMetrics>();
+            private readonly ConcurrentBag<ISectionMetrics> _bag = new ConcurrentBag<ISectionMetrics>();
 
-            public void Add(ISectionMetrics metrics) => _list.Add(metrics);
+            public void Add(ISectionMetrics metrics) => _bag.Add(metrics);
 
             public void Write()
             {
                 Console.WriteLine("metrics:");
 
-                foreach (var metrics in _list)
+                foreach (var metrics in _bag)
                 {
                     Console.WriteLine($"[thread # {metrics.ThreadId}] {string.Join(" -> ", metrics.Chain)}: {metrics.Elapsed.TotalMilliseconds} ms ({metrics.Count} times)");
                 }
             }
-        }
-
-        public class Factory : IFactory
-        {
-            public IReportWriter CreateReportWriter() => new ConsoleReportWriter();
-            public ITimeMeasure CreateTimeMeasure() => new StopwatchTimeMeasure();
-            public ITraceWriter CreateTraceWriter() => new ConsoleTraceWriter();
         }
     }
 }
