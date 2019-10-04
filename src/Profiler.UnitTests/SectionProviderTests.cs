@@ -78,6 +78,18 @@ namespace Profiler.Tests
         }
 
         [Fact]
+        public void SectionProvider_Create_DummyTraceWriter_ShouldNotThrowExceptions()
+        {
+            new SectionProvider(() => new StubTimeMeasure(() => TimeSpan.Zero), DummyTraceWriter.Instance, new StubReportWriter());
+        }
+
+        [Fact]
+        public void SectionProvider_Create_DummyReportWriter_ShouldNotThrowExceptions()
+        {
+            new SectionProvider(() => new StubTimeMeasure(() => TimeSpan.Zero), new StubTraceWriter(), DummyReportWriter.Instance);
+        }
+
+        [Fact]
         public void SectionProvider_CreateSection_NullFormat_ShouldThrowArgumentException()
         {
             var sectionProvider = new SectionProvider(
