@@ -8,10 +8,7 @@ namespace Profiler.Demo.Stopwatch
     {
         static void Main(string[] args)
         {
-            var provider = new SectionProvider(
-                getTimeMeasure: () => new StopwatchTimeMeasure(),
-                traceWriter: new ConsoleTraceWriter(),
-                reportWriter: new ConsoleReportWriter());
+            var provider = new SectionProvider(new Factory());
 
             Console.WriteLine("trace:");
 
@@ -61,10 +58,24 @@ namespace Profiler.Demo.Stopwatch
 
         public class ConsoleReportWriter : IReportWriter
         {
-            public void Write(int threadId, TimeSpan elapsed, int count, string[] chain)
+            private readonly List<ISectionMetrics> _list = new List<ISectionMetrics>();
+
+            public void Add(ISectionMetrics metrics) => _list.Add(metrics);
+
+            public void Write()
             {
-                Console.WriteLine($"[thread # {threadId}] {string.Join(" -> ", chain)}: {elapsed.TotalMilliseconds} ms ({count} times)");
+                foreach(var metrics in _list)
+                {
+                    Console.WriteLine($"[thread # {metrics.ThreadId}] {string.Join(" -> ", metrics.Chain)}: {metrics.Elapsed.TotalMilliseconds} ms ({metrics.Count} times)");
+                }
             }
+        }
+
+        public class Factory : IFactory
+        {
+            public IReportWriter CreateReportWriter() => new ConsoleReportWriter();
+            public ITimeMeasure CreateTimeMeasure() => new StopwatchTimeMeasure();
+            public ITraceWriter CreateTraceWriter() => new ConsoleTraceWriter();
         }
     }
 }

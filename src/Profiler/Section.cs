@@ -3,7 +3,7 @@ using System.Threading;
 
 namespace Profiler
 {
-    internal class Section : ISection
+    internal class Section : ISection, ISectionMetrics
     {
         private readonly int _threadId = Thread.CurrentThread.ManagedThreadId;
 
@@ -43,7 +43,7 @@ namespace Profiler
 
         public bool InUse => _inUse;
         public string[] Chain => _chain;
-        public ITimeMeasure TimeMeasure => _timeMeasure;
+        public TimeSpan Elapsed => _timeMeasure.Total;
         public int Count => _count;
         public int ThreadId => _threadId;
 

@@ -6,24 +6,20 @@ namespace Profiler
 {
     public class SectionProvider : ISectionProvider
     {
-        private readonly Func<ITimeMeasure> _getTimeMeasure;
+        private readonly IFactory _factory;
 
         private readonly ITraceWriter _traceWriter;
         private readonly IReportWriter _reportWriter;
 
-        private readonly object _globalLocker = new object();
-        private readonly List<Section> _global;
-
         private readonly ThreadLocal<Dictionary<CollectionKey, Section>> _local;
 
-        public SectionProvider(Func<ITimeMeasure> getTimeMeasure, ITraceWriter traceWriter, IReportWriter reportWriter)
+        public SectionProvider(IFactory factory)
         {
-            _getTimeMeasure = getTimeMeasure ?? throw new ArgumentNullException(nameof(getTimeMeasure));
+            _factory = factory ?? throw new ArgumentNullException(nameof(factory));
 
-            _traceWriter = traceWriter ?? throw new ArgumentNullException(nameof(traceWriter));
-            _reportWriter = reportWriter ?? throw new ArgumentNullException(nameof(reportWriter));
+            _traceWriter = _factory.CreateTraceWriter() ?? throw new ArgumentException($"factory returns null {nameof(ITraceWriter)}", nameof(factory));
+            _reportWriter = _factory.CreateReportWriter() ?? throw new ArgumentException($"factory returns null {nameof(IReportWriter)}", nameof(factory)); ;
 
-            _global = new List<Section>();
             _local = new ThreadLocal<Dictionary<CollectionKey, Section>>(() => new Dictionary<CollectionKey, Section>());
         }
 
@@ -51,14 +47,11 @@ namespace Profiler
             }
             else
             {
-                ITimeMeasure timeMeasure = _getTimeMeasure();
+                ITimeMeasure timeMeasure = _factory.CreateTimeMeasure() ?? throw new InvalidOperationException($"factory returns null {nameof(IReportWriter)}");
                 section = new Section(this, timeMeasure, _traceWriter, chain);
                 sections.Add(key, section);
 
-                lock (_globalLocker)
-                {
-                    _global.Add(section);
-                }
+                _reportWriter.Add(section);
             }
 
             section.Enter(args);
@@ -75,20 +68,7 @@ namespace Profiler
 
         public void WriteReport()
         {
-            Section[] sections;
-            lock (_globalLocker)
-            {
-                sections = _global.ToArray();
-            }
-
-            foreach (var section in sections)
-            {
-                _reportWriter.Write(
-                    threadId: section.ThreadId,
-                    elapsed: section.TimeMeasure.Total,
-                    count: section.Count,
-                    chain: section.Chain);
-            }
+            _reportWriter.Write();
         }
     }
 }

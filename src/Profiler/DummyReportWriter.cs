@@ -15,6 +15,8 @@ namespace Profiler
 
         private DummyReportWriter() { }
 
-        public void Write(int threadId, TimeSpan elapsed, int count, string[] chain) { }
+        public void Add(ISectionMetrics metrics) { }
+
+        public void Write() { }
     }
 }

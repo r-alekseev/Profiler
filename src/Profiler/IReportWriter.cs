@@ -1,9 +1,8 @@
-﻿using System;
-
-namespace Profiler
+﻿namespace Profiler
 {
     public interface IReportWriter
     {
-        void Write(int threadId, TimeSpan elapsed, int count, string[] chain);
+        void Add(ISectionMetrics metrics);
+        void Write();
     }
 }
