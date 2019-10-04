@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Threading;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace Profiler.Demo.Stopwatch
 {
@@ -8,9 +9,9 @@ namespace Profiler.Demo.Stopwatch
     {
         static void Main(string[] args)
         {
-            var provider = new SectionProvider(new Factory());
+            var serviceProvider = ContainerBootstrapper.Build(new Factory());
 
-            Console.WriteLine("trace:");
+            var provider = serviceProvider.GetService<ISectionProvider>();
 
             var threads = new List<Thread>();
             for (int i = 0; i < 3; i++)
@@ -41,8 +42,6 @@ namespace Profiler.Demo.Stopwatch
                 thread.Join();
             }
 
-            Console.WriteLine();
-            Console.WriteLine("metrics:");
             provider.WriteReport();
 
             Console.ReadKey();
@@ -64,7 +63,9 @@ namespace Profiler.Demo.Stopwatch
 
             public void Write()
             {
-                foreach(var metrics in _list)
+                Console.WriteLine("metrics:");
+
+                foreach (var metrics in _list)
                 {
                     Console.WriteLine($"[thread # {metrics.ThreadId}] {string.Join(" -> ", metrics.Chain)}: {metrics.Elapsed.TotalMilliseconds} ms ({metrics.Count} times)");
                 }

@@ -142,6 +142,10 @@ namespace Profiler.Tests
             {
                 return new StubSection();
             }
+
+            public void WriteReport()
+            {
+            }
         }
     }
 }
