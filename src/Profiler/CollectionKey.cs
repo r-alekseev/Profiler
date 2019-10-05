@@ -12,10 +12,18 @@ namespace Profiler
         }
 
         // the hash code of collection 
-        //  is the hash code of the last element
+        //  is the unchecked sum of collection item hash codes 
         public override int GetHashCode()
         {
-            return _chain[_chain.Length - 1].GetHashCode();
+            int hashCode = 0;
+            unchecked
+            {
+                for (int i = 0; i < _chain.Length; i++)
+                {
+                    hashCode += _chain[i].GetHashCode();
+                }
+            }
+            return hashCode;
         }
 
         // collections are equals 
