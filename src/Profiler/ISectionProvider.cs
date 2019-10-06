@@ -5,6 +5,5 @@ namespace Profiler
     public interface ISectionProvider
     {
         ISection Section(string format, params object[] args);
-        void WriteReport();
     }
 }

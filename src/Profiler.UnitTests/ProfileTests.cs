@@ -6,157 +6,158 @@ using Xunit;
 
 namespace Profiler.Tests
 {
-    class StubTimeMeasure : ITimeMeasure
+    public class ProfileTests
     {
-        private readonly Func<TimeSpan> _getElapsed;
-
-        public StubTimeMeasure(Func<TimeSpan> getElapsed)
+        class StubTraceWriter : ITraceWriter
         {
-            _getElapsed = getElapsed;
+            public readonly List<(TimeSpan Elapsed, string Format, object[] Args)> List = new List<(TimeSpan, string, object[])>();
+
+            public void Write(int threadId, TimeSpan elapsed, string[] chain, params object[] args)
+            {
+                List.Add((elapsed, string.Join(" -> ", chain), args));
+            }
         }
 
-        public TimeSpan Total { get; private set; }
-
-        public TimeSpan Pause()
+        class StubReportWriter : IReportWriter
         {
-            var elapsed = _getElapsed();
-            Total += elapsed;
-            return elapsed;
+            private readonly List<ISectionMetrics> _inner = new List<ISectionMetrics>();
+            public List<(TimeSpan Elapsed, int Count, string Format)> List = new List<(TimeSpan, int, string)>();
+
+            public void Add(ISectionMetrics metrics)
+            {
+                _inner.Add(metrics);
+            }
+
+            public void Write()
+            {
+                List = _inner.Select(m => (m.Elapsed, m.Count, string.Join(" -> ", m.Chain))).ToList();
+            }
         }
 
-        public void Start()
+        class StubTimeMeasure : ITimeMeasure
         {
-        }
-    }
+            private readonly Func<TimeSpan> _getElapsed;
 
-    class StubTraceWriter : ITraceWriter
-    {
-        public readonly List<(TimeSpan Elapsed, string Format, object[] Args)> List = new List<(TimeSpan, string, object[])>();
+            public StubTimeMeasure(Func<TimeSpan> getElapsed)
+            {
+                _getElapsed = getElapsed;
+            }
 
-        public void Write(int threadId, TimeSpan elapsed, string[] chain, params object[] args)
-        {
-            List.Add((elapsed, string.Join(" -> ", chain), args));
-        }
-    }
+            public TimeSpan Total { get; private set; }
 
-    class StubReportWriter : IReportWriter
-    {
-        private readonly List<ISectionMetrics> _inner = new List<ISectionMetrics>();
-        public List<(TimeSpan Elapsed, int Count, string Format)> List = new List<(TimeSpan, int, string)>();
+            public TimeSpan Pause()
+            {
+                var elapsed = _getElapsed();
+                Total += elapsed;
+                return elapsed;
+            }
 
-        public void Add(ISectionMetrics metrics)
-        {
-            _inner.Add(metrics);
+            public void Start()
+            {
+            }
         }
 
-        public void Write()
+        class StubFactory : IFactory
         {
-            List = _inner.Select(m => (m.Elapsed, m.Count, string.Join(" -> ", m.Chain))).ToList();
+            private readonly Func<ITimeMeasure> _getTimeMeasure;
+            private readonly ITraceWriter _traceWriter;
+            private readonly IReportWriter _reportWriter;
+
+            public StubFactory(Func<ITimeMeasure> getTimeMeasure, ITraceWriter traceWriter, IReportWriter reportWriter)
+            {
+                _getTimeMeasure = getTimeMeasure;
+                _traceWriter = traceWriter;
+                _reportWriter = reportWriter;
+            }
+
+            public IReportWriter CreateReportWriter() => _reportWriter;
+            public ITimeMeasure CreateTimeMeasure() => _getTimeMeasure();
+            public ITraceWriter CreateTraceWriter() => _traceWriter;
         }
-    }
 
-    class StubFactory : IFactory
-    {
-        private readonly Func<ITimeMeasure> _getTimeMeasure;
-        private readonly ITraceWriter _traceWriter;
-        private readonly IReportWriter _reportWriter;
 
-        public StubFactory(Func<ITimeMeasure> getTimeMeasure, ITraceWriter traceWriter, IReportWriter reportWriter)
-        {
-            _getTimeMeasure = getTimeMeasure;
-            _traceWriter = traceWriter;
-            _reportWriter = reportWriter;
-        }
-
-        public IReportWriter CreateReportWriter() => _reportWriter;
-        public ITimeMeasure CreateTimeMeasure() => _getTimeMeasure();
-        public ITraceWriter CreateTraceWriter() => _traceWriter;
-    }
-
-    public class SectionProviderTests
-    {
         [Fact]
-        public void SectionProvider_Create_NullFactory_ShouldThrowArgumentNullException()
+        public void Profile_Create_NullFactory_ShouldThrowArgumentNullException()
         {
             Should.Throw<ArgumentNullException>(() =>
             {
-                new SectionProvider(null);
+                new Profile(null);
             });
         }
 
         [Fact]
-        public void SectionProvider_Create_NullTraceWriter_ShouldThrowArgumentException()
+        public void Profile_Create_NullTraceWriter_ShouldThrowArgumentException()
         {
             Should.Throw<ArgumentException>(() =>
             {
-                new SectionProvider(new StubFactory(() => new StubTimeMeasure(() => TimeSpan.Zero), null, new StubReportWriter()));
+                new Profile(new StubFactory(() => new StubTimeMeasure(() => TimeSpan.Zero), null, new StubReportWriter()));
             });
         }
 
         [Fact]
-        public void SectionProvider_Create_NullReportWriter_ShouldThrowArgumentException()
+        public void Profile_Create_NullReportWriter_ShouldThrowArgumentException()
         {
             Should.Throw<ArgumentException>(() =>
             {
-                new SectionProvider(new StubFactory(() => new StubTimeMeasure(() => TimeSpan.Zero), new StubTraceWriter(), null));
+                new Profile(new StubFactory(() => new StubTimeMeasure(() => TimeSpan.Zero), new StubTraceWriter(), null));
             });
         }
 
         [Fact]
-        public void SectionProvider_Create_DummyTraceWriter_ShouldNotThrowExceptions()
+        public void Profile_Create_DummyTraceWriter_ShouldNotThrowExceptions()
         {
-            ; new SectionProvider(new StubFactory(() => new StubTimeMeasure(() => TimeSpan.Zero), DummyTraceWriter.Instance, new StubReportWriter()));
+            new Profile(new StubFactory(() => new StubTimeMeasure(() => TimeSpan.Zero), DummyTraceWriter.Instance, new StubReportWriter()));
         }
 
         [Fact]
-        public void SectionProvider_Create_DummyReportWriter_ShouldNotThrowExceptions()
+        public void Profile_Create_DummyReportWriter_ShouldNotThrowExceptions()
         {
-            new SectionProvider(new StubFactory(() => new StubTimeMeasure(() => TimeSpan.Zero), new StubTraceWriter(), DummyReportWriter.Instance));
+            new Profile(new StubFactory(() => new StubTimeMeasure(() => TimeSpan.Zero), new StubTraceWriter(), DummyReportWriter.Instance));
         }
 
         [Fact]
-        public void SectionProvider_CreateSection_NullFormat_ShouldThrowArgumentException()
+        public void Profile_CreateSection_NullFormat_ShouldThrowArgumentException()
         {
-            var sectionProvider = new SectionProvider(new StubFactory(
+            var profile = new Profile(new StubFactory(
                 () => new StubTimeMeasure(() => TimeSpan.Zero), 
                 new StubTraceWriter(),
                 new StubReportWriter()));
 
             Should.Throw<ArgumentException>(() =>
             {
-                sectionProvider.Section(null);
+                profile.Section(null);
             });
         }
 
         [Fact]
-        public void SectionProvider_CreateSection_EmptyFormat_ShouldThrowArgumentException()
+        public void Profile_CreateSection_EmptyFormat_ShouldThrowArgumentException()
         {
-            var sectionProvider = new SectionProvider(new StubFactory(
+            var profile = new Profile(new StubFactory(
                 () => new StubTimeMeasure(() => TimeSpan.Zero),
                 new StubTraceWriter(),
                 new StubReportWriter()));
 
             Should.Throw<ArgumentException>(() =>
             {
-                sectionProvider.Section(string.Empty);
+                profile.Section(string.Empty);
             });
         }
 
         [Fact]
-        public void SectionProvider_CreateSection_AlreadyInUse_ShouldThrowArgumentException()
+        public void Profile_CreateSection_AlreadyInUse_ShouldThrowArgumentException()
         {
-            var sectionProvider = new SectionProvider(new StubFactory(
+            var profile = new Profile(new StubFactory(
                 () => new StubTimeMeasure(() => TimeSpan.Zero),
                 new StubTraceWriter(),
                 new StubReportWriter()));
 
             // first usage of 'test'
-            using (sectionProvider.Section("test"))
+            using (profile.Section("test"))
             {
                 Should.Throw<ArgumentException>(() =>
                 {
                     // already in use
-                    using (sectionProvider.Section("test"))
+                    using (profile.Section("test"))
                     {
                     }
                 });
@@ -164,34 +165,34 @@ namespace Profiler.Tests
         }
 
         [Fact]
-        public void SectionProvider_CreateSection_ReuseAfterDispose_ShouldNotThrowExceptions()
+        public void Profile_CreateSection_ReuseAfterDispose_ShouldNotThrowExceptions()
         {
-            var sectionProvider = new SectionProvider(new StubFactory(
+            var profile = new Profile(new StubFactory(
                 () => new StubTimeMeasure(() => TimeSpan.Zero),
                 new StubTraceWriter(),
                 new StubReportWriter()));
 
             // first usage of 'test'
-            using (sectionProvider.Section("test"))
+            using (profile.Section("test"))
             {
             }   // freeing 'test'
 
             // second usage of 'test'
-            using (sectionProvider.Section("test"))
+            using (profile.Section("test"))
             {
             }
         }
 
         [Fact]
-        public void SectionProvider_CreateSection_UseSimilarNameForInnerSection_ShouldNotThrowExceptions()
+        public void Profile_CreateSection_UseSimilarNameForInnerSection_ShouldNotThrowExceptions()
         {
-            var sectionProvider = new SectionProvider(new StubFactory(
+            var profile = new Profile(new StubFactory(
                 () => new StubTimeMeasure(() => TimeSpan.Zero),
                 new StubTraceWriter(),
                 new StubReportWriter()));
 
             // usage of 'test'
-            using (var section = sectionProvider.Section("test"))
+            using (var section = profile.Section("test"))
             {
                 // usage of 'test -> test'
                 using (section.Section("test"))
@@ -201,18 +202,18 @@ namespace Profiler.Tests
         }
 
         [Fact]
-        public void SectionProvider_CreateAndDisposeSection_SingleTests()
+        public void Profile_CreateAndDisposeSection_SingleTests()
         {
             var traceWriter = new StubTraceWriter();
             var reportWriter = new StubReportWriter();
             
             Func<TimeSpan> getElapsed = () => TimeSpan.FromMilliseconds(123);
 
-            var provider = new SectionProvider(new StubFactory(() => new StubTimeMeasure(getElapsed), traceWriter, reportWriter));
+            var profile = new Profile(new StubFactory(() => new StubTimeMeasure(getElapsed), traceWriter, reportWriter));
 
             traceWriter.List.Count.ShouldBe(0);
 
-            using (provider.Section("section"))
+            using (profile.Section("section"))
             {
                 traceWriter.List.Count.ShouldBe(0);
             }
@@ -221,7 +222,7 @@ namespace Profiler.Tests
             traceWriter.List[0].Elapsed.ShouldBe(TimeSpan.FromMilliseconds(123));
             traceWriter.List[0].Format.ShouldBe("section");
 
-            provider.WriteReport();
+            profile.WriteReport();
 
             reportWriter.List.Count.ShouldBe(1);
             reportWriter.List[0].Format.ShouldBe("section");
@@ -230,7 +231,7 @@ namespace Profiler.Tests
         }
 
         [Fact]
-        public void SectionProvider_CreateAndDisposeSection_SequentionalTests()
+        public void Profile_CreateAndDisposeSection_SequentionalTests()
         {
             var traceWriter = new StubTraceWriter();
             var reportWriter = new StubReportWriter();
@@ -240,11 +241,11 @@ namespace Profiler.Tests
 
             Func<TimeSpan> getElapsed = () => TimeSpan.FromMilliseconds(milliseconds[index++]);
 
-            var provider = new SectionProvider(new StubFactory(() => new StubTimeMeasure(getElapsed), traceWriter, reportWriter));
+            var profile = new Profile(new StubFactory(() => new StubTimeMeasure(getElapsed), traceWriter, reportWriter));
 
             traceWriter.List.Count.ShouldBe(0);
 
-            using (provider.Section("section.one"))
+            using (profile.Section("section.one"))
             {
                 traceWriter.List.Count.ShouldBe(0);
             }
@@ -254,7 +255,7 @@ namespace Profiler.Tests
             traceWriter.List[0].Format.ShouldBe("section.one");
             traceWriter.List[0].Args.Length.ShouldBe(0);
 
-            using (provider.Section("section.two"))
+            using (profile.Section("section.two"))
             {
                 traceWriter.List.Count.ShouldBe(1);
             }
@@ -267,7 +268,7 @@ namespace Profiler.Tests
             traceWriter.List[1].Format.ShouldBe("section.two");
             traceWriter.List[1].Args.Length.ShouldBe(0);
 
-            using (provider.Section("section.three"))
+            using (profile.Section("section.three"))
             {
                 traceWriter.List.Count.ShouldBe(2);
             }
@@ -283,7 +284,7 @@ namespace Profiler.Tests
             traceWriter.List[2].Format.ShouldBe("section.three");
             traceWriter.List[2].Args.Length.ShouldBe(0);
 
-            provider.WriteReport();
+            profile.WriteReport();
 
             reportWriter.List.Count.ShouldBe(3);
             reportWriter.List[0].Format.ShouldBe("section.one");
@@ -298,7 +299,7 @@ namespace Profiler.Tests
         }
 
         [Fact]
-        public void SectionProvider_CreateAndDisposeSection_RepeatingTests()
+        public void Profile_CreateAndDisposeSection_RepeatingTests()
         {
             var traceWriter = new StubTraceWriter();
             var reportWriter = new StubReportWriter();
@@ -308,13 +309,13 @@ namespace Profiler.Tests
 
             Func<TimeSpan> getElapsed = () => TimeSpan.FromMilliseconds(milliseconds[index++]);
 
-            var provider = new SectionProvider(new StubFactory(() => new StubTimeMeasure(getElapsed), traceWriter, reportWriter));
+            var profile = new Profile(new StubFactory(() => new StubTimeMeasure(getElapsed), traceWriter, reportWriter));
 
             traceWriter.List.Count.ShouldBe(0);
 
             for (int i = 0; i < 3; i++)
             {
-                using (provider.Section("section.{number}", i))
+                using (profile.Section("section.{number}", i))
                 {
                 }
             }
@@ -335,7 +336,7 @@ namespace Profiler.Tests
             traceWriter.List[2].Args.Length.ShouldBe(1);
             traceWriter.List[2].Args[0].ShouldBe(2);
 
-            provider.WriteReport();
+            profile.WriteReport();
 
             reportWriter.List.Count.ShouldBe(1);
             reportWriter.List[0].Format.ShouldBe("section.{number}");
@@ -344,7 +345,7 @@ namespace Profiler.Tests
         }
 
         [Fact]
-        public void SectionProvider_CreateAndDisposeSection_WithChilds()
+        public void Profile_CreateAndDisposeSection_WithChilds()
         {
             var traceWriter = new StubTraceWriter();
             var reportWriter = new StubReportWriter();
@@ -354,11 +355,11 @@ namespace Profiler.Tests
 
             Func<TimeSpan> getElapsed = () => TimeSpan.FromMilliseconds(milliseconds[index++]);
 
-            var provider = new SectionProvider(new StubFactory(() => new StubTimeMeasure(getElapsed), traceWriter, reportWriter));
+            var profile = new Profile(new StubFactory(() => new StubTimeMeasure(getElapsed), traceWriter, reportWriter));
 
             traceWriter.List.Count.ShouldBe(0);
 
-            using (var section = provider.Section("outer"))
+            using (var section = profile.Section("outer"))
             {
                 traceWriter.List.Count.ShouldBe(0);
 
@@ -391,7 +392,7 @@ namespace Profiler.Tests
             traceWriter.List[2].Format.ShouldBe("outer");
             traceWriter.List[2].Elapsed.ShouldBe(TimeSpan.FromMilliseconds(300));
 
-            provider.WriteReport();
+            profile.WriteReport();
 
             reportWriter.List.Count.ShouldBe(2);
             reportWriter.List[0].Format.ShouldBe("outer");

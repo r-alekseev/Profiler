@@ -7,7 +7,7 @@ namespace Profiler
     {
         private readonly int _threadId = Thread.CurrentThread.ManagedThreadId;
 
-        private readonly SectionProvider _sectionProvider;
+        private readonly Profile _sectionProvider;
 
         private int _count;
 
@@ -21,7 +21,7 @@ namespace Profiler
         private bool _inUse;
 
         public Section(
-            SectionProvider sectionProvider,
+            Profile sectionProvider,
             ITimeMeasure timeMeasure,
             ITraceWriter traceWriter,
             string[] chain)
@@ -47,7 +47,7 @@ namespace Profiler
         public int Count => _count;
         public int ThreadId => _threadId;
 
-        public void Free()
+        public void Exit()
         {
             if (_inUse)
             {
@@ -60,10 +60,10 @@ namespace Profiler
 
         public void Dispose()
         {
-            Free();
+            Exit();
         }
 
-        ISection ISection.Section(string format, params object[] args)
+        ISection ISectionProvider.Section(string format, params object[] args)
         {
             string[] chain = CombineChain(format);
 
