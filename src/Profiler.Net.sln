@@ -11,7 +11,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Profiler.Demo.Stopwatch", "
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Profiler.UnitTests", "Profiler.UnitTests\Profiler.UnitTests.csproj", "{CDE6F808-4CE9-4A00-B759-140D8AF6C28A}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Profiler.DependencyInjection", "Profiler.DependencyInjection\Profiler.DependencyInjection.csproj", "{7FB8AC4A-39C1-4990-A793-602FC0CF34D7}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Profiler.DependencyInjection", "Profiler.DependencyInjection\Profiler.DependencyInjection.csproj", "{7FB8AC4A-39C1-4990-A793-602FC0CF34D7}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

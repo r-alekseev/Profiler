@@ -4,7 +4,7 @@ using System.Threading;
 
 namespace Profiler
 {
-    public class SectionProvider : ISectionProvider
+    public class Profile : ISectionProvider
     {
         private readonly IFactory _factory;
 
@@ -13,7 +13,7 @@ namespace Profiler
 
         private readonly ThreadLocal<Dictionary<CollectionKey, Section>> _local;
 
-        public SectionProvider(IFactory factory)
+        public Profile(IFactory factory)
         {
             _factory = factory ?? throw new ArgumentNullException(nameof(factory));
 

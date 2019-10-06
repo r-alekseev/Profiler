@@ -11,8 +11,8 @@ namespace Profiler.DependencyInjection
         {
             if (serviceCollection == null) throw new ArgumentNullException(nameof(serviceCollection));
 
-            serviceCollection.AddSingleton<IFactory>(factory);
-            serviceCollection.AddSingleton<ISectionProvider, SectionProvider>();
+            var profile = new Profile(factory);
+            serviceCollection.AddSingleton<Profile>(profile);
         }
 
         public static void AddProfiler(
