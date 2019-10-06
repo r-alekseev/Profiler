@@ -1,5 +1,4 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
-using Profiler.DependencyInjection;
 
 namespace Profiler.Demo.Stopwatch
 {
