@@ -12,7 +12,7 @@ namespace Profiler.Demo.Stopwatch
         {
             var serviceProvider = ContainerBootstrapper.Build();
 
-            var provider = serviceProvider.GetService<ISectionProvider>();
+            var profile = serviceProvider.GetService<Profile>();
 
             var threads = new List<Thread>();
             for (int i = 0; i < 3; i++)
@@ -20,7 +20,7 @@ namespace Profiler.Demo.Stopwatch
                 var thread = new Thread(() =>
                 {
                     TimeSpan delay = TimeSpan.FromMilliseconds(i * 100);
-                    using (var section = provider.Section("section.{i}.{delay}", i, delay))
+                    using (var section = profile.Section("section.{i}.{delay}", i, delay))
                     {
                         Thread.Sleep(delay);
 
@@ -43,7 +43,7 @@ namespace Profiler.Demo.Stopwatch
                 thread.Join();
             }
 
-            provider.WriteReport();
+            profile.WriteReport();
 
             Console.ReadKey();
         }

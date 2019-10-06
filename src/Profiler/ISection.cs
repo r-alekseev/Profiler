@@ -2,9 +2,8 @@
 
 namespace Profiler
 {
-    public interface ISection : IDisposable
+    public interface ISection : ISectionProvider, IDisposable
     {
-        ISection Section(string format, params object[] args);
-        void Free();
+        void Exit();
     }
 }
