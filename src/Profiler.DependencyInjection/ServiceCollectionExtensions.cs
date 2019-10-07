@@ -17,10 +17,10 @@ namespace Microsoft.Extensions.DependencyInjection
 
         public static void AddProfiler(
             this ServiceCollection serviceCollection,
-            Action<ICustomFactorySettings> configure)
+            Action<ICustomFactorySettings> configure = null)
         {
             var settings = new CustomFactorySettings();
-            configure(settings);
+            configure?.Invoke(settings);
             var factory = new CustomFactory(settings);
 
             AddProfiler(serviceCollection, factory);
