@@ -3,11 +3,10 @@ using System.Threading;
 using Xunit;
 using Shouldly;
 using System.Threading.Tasks;
-using System.Collections.Generic;
 
 namespace Profiler.FuzzingTests
 {
-    public class ProfilerTests
+    public partial class ProfilerTests
     {
         class StubTraceWriter : ITraceWriter
         {
@@ -58,5 +57,6 @@ namespace Profiler.FuzzingTests
 
             traceWriter.Count.ShouldBe(1);
         }
+
     }
 }
