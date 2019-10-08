@@ -42,7 +42,7 @@ namespace Profiler
             {
                 if (section.InUse)
                 {
-                    throw new ArgumentException($"section '{string.Format(" -> ", chain)}' already in use", nameof(chain));
+                    throw new ArgumentException($"section '{string.Join(" -> ", chain)}' already in use", nameof(chain));
                 }
             }
             else
