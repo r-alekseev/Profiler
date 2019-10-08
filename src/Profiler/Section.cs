@@ -7,7 +7,7 @@ namespace Profiler
     {
         private readonly int _threadId = Thread.CurrentThread.ManagedThreadId;
 
-        private readonly Profile _sectionProvider;
+        private readonly Profiler _sectionProvider;
 
         private int _count;
 
@@ -22,7 +22,7 @@ namespace Profiler
         private bool _inUse;
 
         public Section(
-            Profile sectionProvider,
+            Profiler sectionProvider,
             ITimeMeasure timeMeasure,
             ITraceWriter traceWriter,
             string[] chain)
@@ -48,7 +48,7 @@ namespace Profiler
         public int Count => _count;
         public int ThreadId => _threadId;
 
-        public void Exit()
+        internal void Exit()
         {
             bool inUse;
             lock (_inUseLocker)

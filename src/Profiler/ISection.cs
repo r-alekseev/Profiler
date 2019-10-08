@@ -4,6 +4,5 @@ namespace Profiler
 {
     public interface ISection : ISectionProvider, IDisposable
     {
-        void Exit();
     }
 }

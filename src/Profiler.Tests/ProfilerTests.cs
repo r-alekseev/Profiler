@@ -2,29 +2,29 @@ using Xunit;
 
 namespace Profiler.Tests
 {
-    public class ProfileTests
+    public class ProfilerTests
     {
-        private ISectionProvider Stub()
+        private IProfiler Stub()
         {
             return new StubProfile();
         }
 
         [Fact]
-        public void Profile_Section_Sequential_Tests()
+        public void Profiler_Section_Sequential_Tests()
         {
-            var profile = Stub();
+            var profiler = Stub();
 
-            using (profile.Section("section.one"))
+            using (profiler.Section("section.one"))
             {
                 // delay 1 ms
             }
 
-            using (profile.Section("section.two"))
+            using (profiler.Section("section.two"))
             {
                 // delay 1 ms
             }
 
-            using (profile.Section("section.three"))
+            using (profiler.Section("section.three"))
             {
                 // delay 1 ms
             }
@@ -41,13 +41,13 @@ namespace Profiler.Tests
         }
 
         [Fact]
-        public void Profile_Section_Repeating_Tests()
+        public void Profiler_Section_Repeating_Tests()
         {
-            var profile = Stub();
+            var profiler = Stub();
 
             for (int i = 0; i < 3; i++)
             {
-                using (profile.Section("section.{number}", i))
+                using (profiler.Section("section.{number}", i))
                 {
                     // delay 1 ms
                 }
@@ -64,11 +64,11 @@ namespace Profiler.Tests
 
 
         [Fact]
-        public void Profile_Section_Childs_Tests()
+        public void Profiler_Section_Childs_Tests()
         {
-            var profile = Stub();
+            var profiler = Stub();
 
-            using (var section = profile.Section("section.one"))
+            using (var section = profiler.Section("section.one"))
             {
                 using (section.Section("child.one"))
                 {
@@ -88,9 +88,9 @@ namespace Profiler.Tests
         }
 
         [Fact]
-        public void Profile_Section_Child_Passing_Tests()
+        public void Profiler_Section_Child_Passing_Tests()
         {
-            var profile = Stub();
+            var profiler = Stub();
 
             void Inner(ISection section, int i)
             {
@@ -100,7 +100,7 @@ namespace Profiler.Tests
                 }
             }
 
-            using (var section = profile.Section("section.one"))
+            using (var section = profiler.Section("section.one"))
             {
                 Inner(section, 0);
                 Inner(section, 1);
@@ -120,7 +120,7 @@ namespace Profiler.Tests
             //  section -> child.{number}   : 3 ms
         }
 
-        class StubProfile : ISectionProvider
+        class StubProfile : IProfiler
         {
             class StubSection : ISection
             {

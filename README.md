@@ -8,17 +8,17 @@ Minimalistic and fast profiling library for .NET
 ### Sequential
 
 ```csharp
-using (profile.Section("section.one"))
+using (profiler.Section("section.one"))
 {
     // delay 1 ms
 }
 
-using (profile.Section("section.two"))
+using (profiler.Section("section.two"))
 {
     // delay 1 ms
 }
 
-using (profile.Section("section.three"))
+using (profiler.Section("section.three"))
 {
     // delay 1 ms
 }
@@ -39,7 +39,7 @@ using (profile.Section("section.three"))
 ```csharp
 for (int i = 0; i < 3; i++)
 {
-    using (profile.Section("section.{number}", i))
+    using (profiler.Section("section.{number}", i))
     {
         // delay 1 ms
     }
@@ -57,7 +57,7 @@ for (int i = 0; i < 3; i++)
 ### Childs
 
 ```csharp
-using (var section = profile.Section("section"))
+using (var section = profiler.Section("section"))
 {
     using (section.Section("child"))
     {
@@ -87,7 +87,7 @@ void Inner(ISection section, int i)
     }
 }
 
-using (var section = profile.Section("section"))
+using (var section = profiler.Section("section"))
 {
     Inner(section, 0);
     Inner(section, 1);

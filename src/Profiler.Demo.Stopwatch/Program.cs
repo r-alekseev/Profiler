@@ -12,7 +12,7 @@ namespace Profiler.Demo.Stopwatch
         {
             var serviceProvider = ContainerBootstrapper.Build();
 
-            var profile = serviceProvider.GetService<Profile>();
+            var profile = serviceProvider.GetService<IProfiler>();
 
             var threads = new List<Thread>();
             for (int i = 0; i < 3; i++)
