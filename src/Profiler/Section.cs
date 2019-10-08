@@ -18,6 +18,7 @@ namespace Profiler
 
         private object[] _args;
 
+        private readonly object _inUseLocker = new object();
         private bool _inUse;
 
         public Section(
@@ -34,7 +35,7 @@ namespace Profiler
             _chain = chain ?? throw new ArgumentNullException(nameof(chain));
         }
 
-        public void Enter(object[] args)
+        internal void Enter(object[] args)
         {
             _args = args;
             _inUse = true;
@@ -49,12 +50,18 @@ namespace Profiler
 
         public void Exit()
         {
-            if (_inUse)
+            bool inUse;
+            lock (_inUseLocker)
+            {
+                inUse = _inUse;
+                _inUse = false;
+            }
+
+            if (inUse)
             {
                 _count += 1;
                 TimeSpan elapsed = _timeMeasure.Pause();
                 _traceWriter.Write(_threadId, elapsed, _chain, _args);
-                _inUse = false;
             }
         }
 
