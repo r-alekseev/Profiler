@@ -1,5 +1,5 @@
 language: csharp
-solution: src\Profiler.Net.sln
+solution: src\Profiler.sln
 mono: none
 dotnet: 2.2
 script:
@@ -7,4 +7,6 @@ script:
   - dotnet restore
   - dotnet build
   - cd Profiler.UnitTests
+  - dotnet test
+  - cd ../Profiler.FuzzingTests
   - dotnet test
