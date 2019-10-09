@@ -5,8 +5,10 @@ dotnet: 2.2
 script:
   - cd src
   - dotnet restore
-  - dotnet build
+  - dotnet build -c Release
   - cd Profiler.UnitTests
-  - dotnet test
+  - dotnet test -c Release
   - cd ../Profiler.FuzzingTests
-  - dotnet test
+  - dotnet test -c Release
+  - cd ../Profiler.PerformanceTests
+  - dotnet test -c Release 
