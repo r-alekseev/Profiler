@@ -17,7 +17,7 @@ namespace Profiler
 
         private object[] _args;
 
-        private readonly object _inUseLocker = new object();
+        private readonly object _locker = new object();
         private bool _inUse;
 
         private readonly ConcurrentQueue<Section> _queue;
@@ -41,31 +41,35 @@ namespace Profiler
 
         internal void Enter(object[] args)
         {
-            _args = args;
-            _inUse = true;
-            _timeMeasure.Start();
+            lock (_locker)
+            {
+                if (_inUse)
+                {
+                    throw new Exception("can't repeat enter to active section");
+                }
+
+                _inUse = true;
+                _args = args;
+                _timeMeasure.Start();
+            }
         }
 
-        public bool InUse => _inUse;
         public string[] Chain => _chain;
         public TimeSpan Elapsed => _timeMeasure.Total;
         public int Count => _count;
 
         internal void Exit()
         {
-            bool inUse;
-            lock (_inUseLocker)
+            lock (_locker)
             {
-                inUse = _inUse;
-                _inUse = false;
-            }
-
-            if (inUse)
-            {
-                _count += 1;
-                TimeSpan elapsed = _timeMeasure.Pause();
-                _traceWriter.Write(elapsed, _chain, _args);
-                _queue.Enqueue(this);
+                if (_inUse)
+                {
+                    _count += 1;
+                    TimeSpan elapsed = _timeMeasure.Pause();
+                    _traceWriter.Write(elapsed, _chain, _args);
+                    _queue.Enqueue(this);
+                    _inUse = false;
+                }
             }
         }
 
