@@ -14,6 +14,6 @@ namespace Profiler
 
         private DummyTraceWriter() { }
 
-        public void Write(int threadId, TimeSpan elapsed, string[] chain, params object[] args) { }
+        public void Write(TimeSpan elapsed, string[] chain, params object[] args) { }
     }
 }

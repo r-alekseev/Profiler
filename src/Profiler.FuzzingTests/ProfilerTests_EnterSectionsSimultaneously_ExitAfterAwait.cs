@@ -15,13 +15,14 @@ namespace Profiler.FuzzingTests
 
             var profiler = new Profiler(factory);
 
-            int count = 2;
+            int count = 1000;
             var tasks = new Task[count];
 
             for (int i = 0; i < count; i++)
             {
                 tasks[i] = await Task.Factory.StartNew(async () =>
                 {
+                    int j = i;
                     var section = profiler.Section("section");
 
                     //Thread.Sleep(1000); - okay

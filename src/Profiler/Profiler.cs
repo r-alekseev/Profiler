@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Threading;
 
@@ -11,7 +12,7 @@ namespace Profiler
         private readonly ITraceWriter _traceWriter;
         private readonly IReportWriter _reportWriter;
 
-        private readonly ThreadLocal<Dictionary<CollectionKey, Section>> _local;
+        private readonly ConcurrentDictionary<CollectionKey, ConcurrentQueue<Section>> _pool;
 
         public Profiler(IFactory factory)
         {
@@ -20,10 +21,10 @@ namespace Profiler
             _traceWriter = _factory.CreateTraceWriter() ?? throw new ArgumentException($"factory returns null {nameof(ITraceWriter)}", nameof(factory));
             _reportWriter = _factory.CreateReportWriter() ?? throw new ArgumentException($"factory returns null {nameof(IReportWriter)}", nameof(factory)); ;
 
-            _local = new ThreadLocal<Dictionary<CollectionKey, Section>>(() => new Dictionary<CollectionKey, Section>());
+            _pool = new ConcurrentDictionary<CollectionKey, ConcurrentQueue<Section>>();
         }
 
-        internal ISection Section(string[] chain, params object[] args)
+        internal ISection GetOrCreateSection(string[] chain, params object[] args)
         {
             if (chain == null) throw new ArgumentNullException(nameof(chain));
             if (chain.Length == 0) throw new ArgumentException("empty collection", nameof(chain));
@@ -36,21 +37,12 @@ namespace Profiler
 
             var key = new CollectionKey(chain);
 
-            var sections = _local.Value;
+            var queue = _pool.GetOrAdd(key, k => new ConcurrentQueue<Section>());
 
-            if (sections.TryGetValue(key, out Section section))
-            {
-                if (section.InUse)
-                {
-                    throw new ArgumentException($"section '{string.Join(" -> ", chain)}' already in use", nameof(chain));
-                }
-            }
-            else
+            if (!queue.TryDequeue(out Section section))
             {
                 ITimeMeasure timeMeasure = _factory.CreateTimeMeasure() ?? throw new InvalidOperationException($"factory returns null {nameof(IReportWriter)}");
-                section = new Section(this, timeMeasure, _traceWriter, chain);
-                sections.Add(key, section);
-
+                section = new Section(this, timeMeasure, _traceWriter, chain, queue);
                 _reportWriter.Add(section);
             }
 
@@ -61,7 +53,7 @@ namespace Profiler
 
         public ISection Section(string format, params object[] args)
         {
-            return Section(
+            return GetOrCreateSection(
                 chain: new[] { format }, 
                 args: args);
         }

@@ -12,7 +12,7 @@ namespace Profiler.Tests
         {
             public readonly List<(TimeSpan Elapsed, string Format, object[] Args)> List = new List<(TimeSpan, string, object[])>();
 
-            public void Write(int threadId, TimeSpan elapsed, string[] chain, params object[] args)
+            public void Write(TimeSpan elapsed, string[] chain, params object[] args)
             {
                 List.Add((elapsed, string.Join(" -> ", chain), args));
             }
@@ -20,17 +20,28 @@ namespace Profiler.Tests
 
         class StubReportWriter : IReportWriter
         {
-            private readonly List<ISectionMetrics> _inner = new List<ISectionMetrics>();
-            public List<(TimeSpan Elapsed, int Count, string Format)> List = new List<(TimeSpan, int, string)>();
+            private readonly List<ISectionMetrics> _metricsList = new List<ISectionMetrics>();
+            public Dictionary<string, List<ISectionMetrics>> Dictionary = new Dictionary<string, List<ISectionMetrics>>();
 
             public void Add(ISectionMetrics metrics)
             {
-                _inner.Add(metrics);
+                _metricsList.Add(metrics);
             }
 
             public void Write()
             {
-                List = _inner.Select(m => (m.Elapsed, m.Count, string.Join(" -> ", m.Chain))).ToList();
+                Dictionary.Clear();
+
+                foreach (var metrics in _metricsList)
+                {
+                    string key = string.Join(" -> ", metrics.Chain);
+                    if (!Dictionary.TryGetValue(key, out List<ISectionMetrics> list))
+                    {
+                        list = new List<ISectionMetrics>();
+                        Dictionary[key] = list;
+                    }
+                    list.Add(metrics);
+                }
             }
         }
 
@@ -144,7 +155,7 @@ namespace Profiler.Tests
         }
 
         [Fact]
-        public void Profiler_CreateSection_AlreadyInUse_ShouldThrowArgumentException()
+        public void Profiler_CreateSection_AlreadyInUse_ShouldNotThrowExceptions()
         {
             var profiler = new Profiler(new StubFactory(
                 () => new StubTimeMeasure(() => TimeSpan.Zero),
@@ -154,13 +165,16 @@ namespace Profiler.Tests
             // first usage of 'test'
             using (profiler.Section("test"))
             {
-                Should.Throw<ArgumentException>(() =>
-                {
-                    // already in use
+                //Should.Throw<ArgumentException>(() =>
+                //{
+                    // thats fine.. no more exceptions
+                    // the main reason is async operations
+                    //  it's often a thread enters section, starts await and returns to the thread pool 
+                    //  and before await ends and section been exited the thread enters the same-named section in another task
                     using (profiler.Section("test"))
                     {
                     }
-                });
+                //});
             }
         }
 
@@ -240,10 +254,11 @@ namespace Profiler.Tests
 
             profiler.WriteReport();
 
-            reportWriter.List.Count.ShouldBe(1);
-            reportWriter.List[0].Format.ShouldBe("section");
-            reportWriter.List[0].Elapsed.ShouldBe(TimeSpan.FromMilliseconds(123));
-            reportWriter.List[0].Count.ShouldBe(1);
+            reportWriter.Dictionary.Count.ShouldBe(1);
+            reportWriter.Dictionary.ContainsKey("section").ShouldBe(true);
+            reportWriter.Dictionary["section"].All(m => string.Join(" -> ", m.Chain) == "section").ShouldBe(true);
+            reportWriter.Dictionary["section"].Sum(m => m.Elapsed.TotalMilliseconds).ShouldBe(123);
+            reportWriter.Dictionary["section"].Sum(m => m.Count).ShouldBe(1);
         }
 
         [Fact]
@@ -302,16 +317,19 @@ namespace Profiler.Tests
 
             profiler.WriteReport();
 
-            reportWriter.List.Count.ShouldBe(3);
-            reportWriter.List[0].Format.ShouldBe("section.one");
-            reportWriter.List[0].Elapsed.ShouldBe(TimeSpan.FromMilliseconds(123));
-            reportWriter.List[0].Count.ShouldBe(1);
-            reportWriter.List[1].Format.ShouldBe("section.two");
-            reportWriter.List[1].Elapsed.ShouldBe(TimeSpan.FromMilliseconds(45));
-            reportWriter.List[1].Count.ShouldBe(1);
-            reportWriter.List[2].Format.ShouldBe("section.three");
-            reportWriter.List[2].Elapsed.ShouldBe(TimeSpan.FromMilliseconds(6));
-            reportWriter.List[2].Count.ShouldBe(1);
+            reportWriter.Dictionary.Count.ShouldBe(3);
+            reportWriter.Dictionary.ContainsKey("section.one").ShouldBe(true);
+            reportWriter.Dictionary["section.one"].All(m => string.Join(" -> ", m.Chain) == "section.one").ShouldBe(true);
+            reportWriter.Dictionary["section.one"].Sum(m => m.Elapsed.TotalMilliseconds).ShouldBe(123);
+            reportWriter.Dictionary["section.one"].Sum(m => m.Count).ShouldBe(1);
+            reportWriter.Dictionary.ContainsKey("section.two").ShouldBe(true);
+            reportWriter.Dictionary["section.two"].All(m => string.Join(" -> ", m.Chain) == "section.two").ShouldBe(true);
+            reportWriter.Dictionary["section.two"].Sum(m => m.Elapsed.TotalMilliseconds).ShouldBe(45);
+            reportWriter.Dictionary["section.two"].Sum(m => m.Count).ShouldBe(1);
+            reportWriter.Dictionary.ContainsKey("section.three").ShouldBe(true);
+            reportWriter.Dictionary["section.three"].All(m => string.Join(" -> ", m.Chain) == "section.three").ShouldBe(true);
+            reportWriter.Dictionary["section.three"].Sum(m => m.Elapsed.TotalMilliseconds).ShouldBe(6);
+            reportWriter.Dictionary["section.three"].Sum(m => m.Count).ShouldBe(1);
         }
 
         [Fact]
@@ -354,10 +372,11 @@ namespace Profiler.Tests
 
             profiler.WriteReport();
 
-            reportWriter.List.Count.ShouldBe(1);
-            reportWriter.List[0].Format.ShouldBe("section.{number}");
-            reportWriter.List[0].Elapsed.ShouldBe(TimeSpan.FromMilliseconds(174));
-            reportWriter.List[0].Count.ShouldBe(3);
+            reportWriter.Dictionary.Count.ShouldBe(1);
+            reportWriter.Dictionary.ContainsKey("section.{number}").ShouldBe(true);
+            reportWriter.Dictionary["section.{number}"].All(m => string.Join(" -> ", m.Chain) == "section.{number}").ShouldBe(true);
+            reportWriter.Dictionary["section.{number}"].Sum(m => m.Elapsed.TotalMilliseconds).ShouldBe(174);
+            reportWriter.Dictionary["section.{number}"].Sum(m => m.Count).ShouldBe(3);
         }
 
         [Fact]
@@ -410,13 +429,15 @@ namespace Profiler.Tests
 
             profiler.WriteReport();
 
-            reportWriter.List.Count.ShouldBe(2);
-            reportWriter.List[0].Format.ShouldBe("outer");
-            reportWriter.List[0].Elapsed.ShouldBe(TimeSpan.FromMilliseconds(300));
-            reportWriter.List[0].Count.ShouldBe(1);
-            reportWriter.List[1].Format.ShouldBe("outer -> inner");
-            reportWriter.List[1].Elapsed.ShouldBe(TimeSpan.FromMilliseconds(246));
-            reportWriter.List[1].Count.ShouldBe(2);
+            reportWriter.Dictionary.Count.ShouldBe(2);
+            reportWriter.Dictionary.ContainsKey("outer").ShouldBe(true);
+            reportWriter.Dictionary["outer"].All(m => string.Join(" -> ", m.Chain) == "outer").ShouldBe(true);
+            reportWriter.Dictionary["outer"].Sum(m => m.Elapsed.TotalMilliseconds).ShouldBe(300);
+            reportWriter.Dictionary["outer"].Sum(m => m.Count).ShouldBe(1);
+            reportWriter.Dictionary.ContainsKey("outer -> inner").ShouldBe(true);
+            reportWriter.Dictionary["outer -> inner"].All(m => string.Join(" -> ", m.Chain) == "outer -> inner").ShouldBe(true);
+            reportWriter.Dictionary["outer -> inner"].Sum(m => m.Elapsed.TotalMilliseconds).ShouldBe(246);
+            reportWriter.Dictionary["outer -> inner"].Sum(m => m.Count).ShouldBe(2);
         }
     }
 }

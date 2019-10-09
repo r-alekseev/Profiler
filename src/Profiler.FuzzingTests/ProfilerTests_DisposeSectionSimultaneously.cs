@@ -14,7 +14,7 @@ namespace Profiler.FuzzingTests
 
             public int Count => _count;
 
-            public void Write(int threadId, TimeSpan elapsed, string[] chain, params object[] args)
+            public void Write(TimeSpan elapsed, string[] chain, params object[] args)
             {
                 Interlocked.Increment(ref _count);
             }

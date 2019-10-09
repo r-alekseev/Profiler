@@ -50,9 +50,9 @@ namespace Profiler.Demo.Stopwatch
 
         public class ConsoleTraceWriter : ITraceWriter
         {
-            public void Write(int threadId, TimeSpan elapsed, string[] chain, params object[] args)
+            public void Write(TimeSpan elapsed, string[] chain, params object[] args)
             {
-                Console.WriteLine($"[thread # {threadId}] {string.Join(" -> ", chain)}: {elapsed.TotalMilliseconds} ms");
+                Console.WriteLine($"{string.Join(" -> ", chain)}: {elapsed.TotalMilliseconds} ms");
             }
         }
 
@@ -68,7 +68,7 @@ namespace Profiler.Demo.Stopwatch
 
                 foreach (var metrics in _bag)
                 {
-                    Console.WriteLine($"[thread # {metrics.ThreadId}] {string.Join(" -> ", metrics.Chain)}: {metrics.Elapsed.TotalMilliseconds} ms ({metrics.Count} times)");
+                    Console.WriteLine($"{string.Join(" -> ", metrics.Chain)}: {metrics.Elapsed.TotalMilliseconds} ms ({metrics.Count} times)");
                 }
             }
         }
