@@ -3,7 +3,7 @@ using System;
 
 namespace Microsoft.Extensions.DependencyInjection
 {
-    public static class ServiceCollectionExtensions
+    public static class ProfilerConfigurationExtensions
     {
         public static void AddProfiler(
             this ServiceCollection serviceCollection,
@@ -17,9 +17,9 @@ namespace Microsoft.Extensions.DependencyInjection
 
         public static void AddProfiler(
             this ServiceCollection serviceCollection,
-            Action<ICustomFactorySettings> configure = null)
+            Action<IProfilerConfiguration> configure = null)
         {
-            var settings = new CustomFactorySettings();
+            var settings = new ProfilerConfiguration();
             configure?.Invoke(settings);
             var factory = new CustomFactory(settings);
 

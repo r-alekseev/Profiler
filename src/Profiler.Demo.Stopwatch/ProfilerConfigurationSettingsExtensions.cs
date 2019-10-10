@@ -2,14 +2,14 @@
 
 namespace Profiler.Demo.Stopwatch
 {
-    public static class CustomFactorySettingsExtensions
+    public static class ProfilerConfigurationSettingsExtensions
     {
-        public static void UseConsoleTraceWriter(this ICustomFactorySettings settings)
+        public static void UseConsoleTraceWriter(this IProfilerConfiguration settings)
         {
             settings.CreateTraceWriter = () => new ConsoleTraceWriter();
         }
 
-        public static void UseConsoleReportWriter(this ICustomFactorySettings settings)
+        public static void UseConsoleReportWriter(this IProfilerConfiguration settings)
         {
             settings.CreateReportWriter = () => new ConsoleReportWriter();
         }
