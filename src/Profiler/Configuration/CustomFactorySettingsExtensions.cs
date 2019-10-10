@@ -1,4 +1,6 @@
 ﻿
+using System;
+
 namespace Profiler
 {
     public static class CustomFactorySettingsExtensions
@@ -16,6 +18,11 @@ namespace Profiler
         public static void UseDummyReportWriter(this ICustomFactorySettings settings)
         {
             settings.CreateReportWriter = () => DummyReportWriter.Instance;
+        }
+
+        public static void UseDebugTraceWriter(this ICustomFactorySettings settings)
+        {
+            settings.CreateTraceWriter = () => new DebugTraceWriter();
         }
     }
 }
