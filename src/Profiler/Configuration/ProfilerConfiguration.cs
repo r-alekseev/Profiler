@@ -2,7 +2,7 @@
 
 namespace Profiler
 {
-    public class CustomFactorySettings : ICustomFactorySettings
+    public class ProfilerConfiguration : IProfilerConfiguration
     {
         public Func<ITimeMeasure> CreateTimeMeasure { get; set; }
         public Func<ITraceWriter> CreateTraceWriter { get; set; }

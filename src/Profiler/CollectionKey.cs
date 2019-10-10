@@ -12,6 +12,11 @@ namespace Profiler
             _chain = chain;
         }
 
+        public override string ToString()
+        {
+            return string.Join(", ", _chain);
+        }
+
         // the hash code of collection 
         //  is the unchecked sum of collection item hash codes 
         public override int GetHashCode()

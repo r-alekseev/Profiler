@@ -8,7 +8,7 @@ namespace Profiler
         private readonly Func<ITraceWriter> _createTraceWriter;
         private readonly Func<IReportWriter> _createReportWriter;
 
-        public CustomFactory(ICustomFactorySettings settings)
+        public CustomFactory(IProfilerConfiguration settings)
         {
             if (settings == null) throw new ArgumentNullException(nameof(settings));
 

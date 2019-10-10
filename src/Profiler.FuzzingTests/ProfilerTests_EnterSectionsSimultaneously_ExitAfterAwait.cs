@@ -11,7 +11,7 @@ namespace Profiler.FuzzingTests
         [Fact]
         public async Task Profiler_CreateSection_EnterSectionsSimultaneously_ExitAfterAwait_ShouldNotThrowSectionInUseException()
         {
-            var factory = new CustomFactory(new CustomFactorySettings());
+            var factory = new CustomFactory(new ProfilerConfiguration());
 
             var profiler = new Profiler(factory);
 
