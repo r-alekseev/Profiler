@@ -80,9 +80,10 @@ namespace Profiler
 
         ISection ISectionProvider.Section(string format, params object[] args)
         {
-            string[] chain = CombineChain(format);
+            string[] newChain = CombineChain(format);
+            object[] newArgs = CombineArgs(args);
 
-            var section = _profiler.GetOrCreateSection(chain, args);
+            var section = _profiler.GetOrCreateSection(newChain, newArgs);
             return section;
         }
 
@@ -95,6 +96,14 @@ namespace Profiler
             }
             formats[_chain.Length] = format;
             return formats;
+        }
+
+        private object[] CombineArgs(object[] args)
+        {
+            object[] newArgs = new object[_args.Length + args.Length];
+            _args.CopyTo(newArgs, 0);
+            args.CopyTo(newArgs, _args.Length);
+            return newArgs;
         }
     }
 }
