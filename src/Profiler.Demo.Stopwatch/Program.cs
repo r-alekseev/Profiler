@@ -2,7 +2,6 @@
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Threading;
-using Microsoft.Extensions.DependencyInjection;
 
 namespace Profiler.Demo.Stopwatch
 {
@@ -10,9 +9,11 @@ namespace Profiler.Demo.Stopwatch
     {
         static void Main(string[] args)
         {
-            var serviceProvider = ContainerBootstrapper.Build();
-
-            var profile = serviceProvider.GetService<IProfiler>();
+            var profiler = new ProfilerConfiguration()
+                .UseStopwatchTimeMeasure()
+                .UseConsoleTraceWriter()
+                .UseConsoleReportWriter()
+                .CreateProfiler();
 
             var threads = new List<Thread>();
             for (int i = 0; i < 3; i++)
@@ -20,7 +21,7 @@ namespace Profiler.Demo.Stopwatch
                 var thread = new Thread(() =>
                 {
                     TimeSpan delay = TimeSpan.FromMilliseconds(i * 100);
-                    using (var section = profile.Section("section.{i}.{delay}", i, delay))
+                    using (var section = profiler.Section("section.{i}.{delay}", i, delay))
                     {
                         Thread.Sleep(delay);
 
@@ -43,7 +44,7 @@ namespace Profiler.Demo.Stopwatch
                 thread.Join();
             }
 
-            profile.WriteReport();
+            profiler.WriteReport();
 
             Console.ReadKey();
         }
