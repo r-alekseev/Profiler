@@ -77,11 +77,9 @@ namespace Profiler.PerformanceTests
         {
             var reportWriter = new StubReportWriter();
 
-            var serviceCollection = new ServiceCollection();
-            serviceCollection.AddProfiler(settings => settings.CreateReportWriter = () => reportWriter);
-            var serviceProvider = serviceCollection.BuildServiceProvider();
-
-            var profiler = serviceProvider.GetService<IProfiler>();
+            var conf = new ProfilerConfiguration();
+            conf.CreateReportWriter = () => reportWriter;
+            var profiler = conf.CreateProfiler();
 
             string[] keys = new string[count];
             for (int i = 0; i < keysCount; i++) keys[i] = i.ToString();
@@ -134,11 +132,9 @@ namespace Profiler.PerformanceTests
         {
             var reportWriter = new StubReportWriter();
 
-            var serviceCollection = new ServiceCollection();
-            serviceCollection.AddProfiler(settings => settings.CreateReportWriter = () => reportWriter);
-            var serviceProvider = serviceCollection.BuildServiceProvider();
-
-            var profiler = serviceProvider.GetService<IProfiler>();
+            var conf = new ProfilerConfiguration();
+            conf.CreateReportWriter = () => reportWriter;
+            var profiler = conf.CreateProfiler();
 
             string[] keys = new string[count];
             for (int i = 0; i < keysCount; i++) keys[i] = i.ToString();
