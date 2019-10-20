@@ -12,3 +12,12 @@ script:
   - dotnet test -c Release
   - cd ../Profiler.PerformanceTests
   - dotnet test -c Release 
+  - cd ..
+deploy:
+  skip_cleanup: true
+  provider: script
+  script: 
+    - dotnet pack -c Release --no-build
+    - dotnet nuget push Profiler\bin\Release\Profiler.0.1.2-preview0002.nupkg --api-key $NUGET_API_KEY --source https://api.nuget.org/v3/index.json
+  on:
+    tags: true
