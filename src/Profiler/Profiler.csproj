@@ -4,4 +4,9 @@
     <TargetFramework>netstandard2.0</TargetFramework>
   </PropertyGroup>
 
+  <PropertyGroup>
+    <IsPackable>true</IsPackable>
+    <NuspecFile>Profiler.nuspec</NuspecFile>
+  </PropertyGroup>
+
 </Project>
