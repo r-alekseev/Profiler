@@ -2,6 +2,7 @@
 Minimalistic and fast profiling library for .NET
 
 [![Build Status](https://api.travis-ci.com/r-alekseev/Profiler.svg?token=6vyZfrof99dSqe746sJ2&branch=master)](https://travis-ci.com/r-alekseev/Profiler)
+[![NuGet version (Profiler)](https://img.shields.io/nuget/v/Profiler.svg?style=flat)](https://www.nuget.org/packages/Profiler/)
 
 ## Usage
 
