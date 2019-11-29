@@ -16,6 +16,6 @@ script:
 deploy:
   skip_cleanup: true
   provider: script
-  script: dotnet pack -c Release --no-build && dotnet nuget push ./Profiler/bin/Release/Profiler.0.1.2.nupkg --api-key $NUGET_API_KEY --source $NUGET_SOURCE
+  script: dotnet pack -c Release --no-build && dotnet nuget push ./Profiler/bin/Release/Profiler.0.1.3.nupkg --api-key $NUGET_API_KEY --source $NUGET_SOURCE
   on:
     tags: true
