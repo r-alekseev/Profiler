@@ -1,7 +1,5 @@
 ﻿using System;
 using System.Collections.Concurrent;
-using System.Collections.Generic;
-using System.Threading;
 
 namespace Profiler
 {
@@ -12,7 +10,7 @@ namespace Profiler
         private readonly ITraceWriter _traceWriter;
         private readonly IReportWriter _reportWriter;
 
-        private readonly ConcurrentDictionary<CollectionKey, ConcurrentQueue<Section>> _pool;
+        private readonly ConcurrentDictionary<string[], ConcurrentQueue<Section>> _pool;
 
         public Profiler(IFactory factory)
         {
@@ -21,7 +19,8 @@ namespace Profiler
             _traceWriter = _factory.CreateTraceWriter() ?? throw new ArgumentException($"factory returns null {nameof(ITraceWriter)}", nameof(factory));
             _reportWriter = _factory.CreateReportWriter() ?? throw new ArgumentException($"factory returns null {nameof(IReportWriter)}", nameof(factory)); ;
 
-            _pool = new ConcurrentDictionary<CollectionKey, ConcurrentQueue<Section>>();
+            _pool = new ConcurrentDictionary<string[], ConcurrentQueue<Section>>(
+                comparer: new ChainEqualityComparer());
         }
 
         internal ISection GetOrCreateSection(string[] chain, params object[] args)
@@ -35,9 +34,7 @@ namespace Profiler
                     throw new ArgumentException("at least one of chain items is null or whitespace", nameof(chain));
             }
 
-            var key = new CollectionKey(chain);
-
-            var queue = _pool.GetOrAdd(key, k => new ConcurrentQueue<Section>());
+            var queue = _pool.GetOrAdd(chain, k => new ConcurrentQueue<Section>());
 
             if (!queue.TryDequeue(out Section section))
             {
