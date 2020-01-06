@@ -14,7 +14,7 @@ namespace Profiler
             {
                 for (int i = 0; i < chain.Length; i++)
                 {
-                    hashCode += chain[i].GetHashCode();
+                    hashCode += ((chain[i]?.GetHashCode() ?? 0) * (i + 1)) >> 2;
                 }
             }
             return hashCode;
@@ -32,14 +32,6 @@ namespace Profiler
             if (chainX.Length != chainY.Length)
             {
                 return false;
-            }
-
-            for (int i = chainX.Length - 1; i > -1; i--)
-            {
-                if (chainX[i].Length != chainY[i].Length)
-                {
-                    return false;
-                }
             }
 
             for (int i = chainX.Length - 1; i > -1; i--)
