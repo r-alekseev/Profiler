@@ -127,17 +127,7 @@ namespace Profiler.PerformanceTests
         {
             var comparer = new TestChainEqualityComparerDecorator(new ChainEqualityComparer());
 
-            ChainEqualityComparer_WithDecorator_Tests(comparer, count, lengthFrom, lengthTo);
-        }
-
-        [Theory]
-        [InlineData(100_000, 1, 15)]
-        [InlineData(1_000_000, 1, 15)]
-        public void ChainEqualityComparer_Old_Tests(int count, int lengthFrom, long lengthTo)
-        {
-            var comparer = new TestChainEqualityComparerDecorator(new ChainEqualityComparer_Old());
-
-            ChainEqualityComparer_WithDecorator_Tests(comparer, count, lengthFrom, lengthTo);
+            ChainEqualityComparer_WithDecorator_Tests(comparer,  count, lengthFrom, lengthTo);
         }
 
         private List<string>[] GenerateKeys(int count, int length, Random random)
