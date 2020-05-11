@@ -25,12 +25,9 @@ namespace Profiler.FuzzingTests
         {
             var traceWriter = new StubTraceWriter();
 
-            var settings = new ProfilerConfiguration();
-            settings.CreateTraceWriter = () => traceWriter;
-
-            var factory = new CustomFactory(settings);
-
-            var profiler = new Profiler(factory);
+            var profiler = new ProfilerConfiguration()
+                .UseTraceWriter(() => traceWriter)
+                .CreateProfiler();
 
             var section = profiler.Section("section");
 

@@ -77,9 +77,9 @@ namespace Profiler.PerformanceTests
         {
             var reportWriter = new StubReportWriter();
 
-            var conf = new ProfilerConfiguration();
-            conf.CreateReportWriter = () => reportWriter;
-            var profiler = conf.CreateProfiler();
+            var profiler = new ProfilerConfiguration()
+                .UseReportWriter(() => reportWriter)
+                .CreateProfiler();
 
             string[] keys = new string[count];
             for (int i = 0; i < keysCount; i++) keys[i] = i.ToString();
@@ -132,9 +132,9 @@ namespace Profiler.PerformanceTests
         {
             var reportWriter = new StubReportWriter();
 
-            var conf = new ProfilerConfiguration();
-            conf.CreateReportWriter = () => reportWriter;
-            var profiler = conf.CreateProfiler();
+            var profiler = new ProfilerConfiguration()
+                .UseReportWriter(() => reportWriter)
+                .CreateProfiler();
 
             string[] keys = new string[count];
             for (int i = 0; i < keysCount; i++) keys[i] = i.ToString();

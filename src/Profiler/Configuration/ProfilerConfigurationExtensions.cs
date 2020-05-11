@@ -1,4 +1,6 @@
-﻿namespace Profiler
+﻿using System;
+
+namespace Profiler
 {
     public static class ProfilerConfigurationExtensions
     {
@@ -7,28 +9,36 @@
             return new Profiler(new CustomFactory(settings));
         }
 
-        public static IProfilerConfiguration UseStopwatchTimeMeasure(this IProfilerConfiguration settings)
+
+        public static IProfilerConfiguration UseTimeMeasure(this IProfilerConfiguration settings, Func<ITimeMeasure> create)
         {
-            settings.CreateTimeMeasure = () => new StopwatchTimeMeasure();
+            settings.CreateTimeMeasure = create;
             return settings;
         }
 
-        public static IProfilerConfiguration UseDummyTraceWriter(this IProfilerConfiguration settings)
+        public static IProfilerConfiguration UseTraceWriter(this IProfilerConfiguration settings, Func<ITraceWriter> create)
         {
-            settings.CreateTraceWriter = () => DummyTraceWriter.Instance;
+            settings.CreateTraceWriter = create;
             return settings;
         }
 
-        public static IProfilerConfiguration UseDummyReportWriter(this IProfilerConfiguration settings)
+        public static IProfilerConfiguration UseReportWriter(this IProfilerConfiguration settings, Func<IReportWriter> create)
         {
-            settings.CreateReportWriter = () => DummyReportWriter.Instance;
+            settings.CreateReportWriter = create;
             return settings;
         }
 
-        public static IProfilerConfiguration UseDebugTraceWriter(this IProfilerConfiguration settings)
-        {
-            settings.CreateTraceWriter = () => new DebugTraceWriter();
-            return settings;
-        }
+
+        public static IProfilerConfiguration UseStopwatchTimeMeasure(this IProfilerConfiguration settings) => settings
+            .UseTimeMeasure(create: () => new StopwatchTimeMeasure());
+
+        public static IProfilerConfiguration UseDummyTraceWriter(this IProfilerConfiguration settings) => settings
+            .UseTraceWriter(create: () => DummyTraceWriter.Instance);
+
+        public static IProfilerConfiguration UseDummyReportWriter(this IProfilerConfiguration settings) => settings
+            .UseReportWriter(create: () => DummyReportWriter.Instance);
+
+        public static IProfilerConfiguration UseDebugTraceWriter(this IProfilerConfiguration settings) => settings
+            .UseTraceWriter(create: () => DebugTraceWriter.Instance);
     }
 }
