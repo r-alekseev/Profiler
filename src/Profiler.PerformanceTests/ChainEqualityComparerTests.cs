@@ -15,7 +15,7 @@ namespace Profiler.PerformanceTests
 {
     public class TestChainEqualityComparerDecorator : IEqualityComparer<string[]>
     {
-        private readonly ChainEqualityComparer _comparer;
+        private readonly IEqualityComparer<string[]> _comparer;
 
         private long _getHashCodeCounter;
         private long _equalsCounter;
@@ -23,7 +23,7 @@ namespace Profiler.PerformanceTests
         private Stopwatch _getHashCodeStopwatch = new Stopwatch();
         private Stopwatch _equalsStopwatch = new Stopwatch();
 
-        public TestChainEqualityComparerDecorator(ChainEqualityComparer comparer)
+        public TestChainEqualityComparerDecorator(IEqualityComparer<string[]> comparer)
         {
             _comparer = comparer ?? throw new ArgumentNullException(nameof(comparer));
         }
@@ -66,10 +66,8 @@ namespace Profiler.PerformanceTests
             _output = output;
         }
 
-        private void ChainEqualityComparer_Test(List<string> log, int count, int length, Func<int, string> getNext)
+        private void ChainEqualityComparer_WithDecorator_Test(TestChainEqualityComparerDecorator comparer, List<string> log, int count, int length, Func<int, string> getNext)
         {
-            var comparer = new TestChainEqualityComparerDecorator(new ChainEqualityComparer());
-
             var hashSet = new HashSet<string[]>(comparer);
 
             for(int i = 0; i < count; i ++)
@@ -92,10 +90,7 @@ namespace Profiler.PerformanceTests
             log.Add(comparer.EqualsMs.ToString());
         }
 
-        [Theory]
-        [InlineData(10_000, 1, 15)]
-        [InlineData(1_000_000, 1, 15)]
-        public void ChainEqualityComparer_Tests(int count, int lengthFrom, long lengthTo)
+        private void ChainEqualityComparer_WithDecorator_Tests(TestChainEqualityComparerDecorator comparer, int count, int lengthFrom, long lengthTo)
         {
             for(int length = lengthFrom; length <= lengthTo; length++)
             {
@@ -106,23 +101,43 @@ namespace Profiler.PerformanceTests
 
                 log.Add("\tequal:");
                 // equal chains
-                ChainEqualityComparer_Test(log, count, length, i => "an item of the chain");
+                ChainEqualityComparer_WithDecorator_Test(comparer, log, count, length, i => "an item of the chain");
 
                 log.Add("\trandom:");
                 // random chains
                 var random = new Random();
-                ChainEqualityComparer_Test(log, count, length, i => random.Next(0, 1_000_000).ToString());
+                ChainEqualityComparer_WithDecorator_Test(comparer, log, count, length, i => random.Next(0, 1_000_000).ToString());
 
                 log.Add("\tpermut:");
                 // permutation chains
                 var keys = GenerateKeys(count, length, random);
-                ChainEqualityComparer_Test(log, count, length, i => keys[i][random.Next(0, length - 1)]);
+                ChainEqualityComparer_WithDecorator_Test(comparer, log, count, length, i => keys[i][random.Next(0, length - 1)]);
 
                 string line = string.Join('|', log);
 
                 _output.WriteLine(line);
                 Console.WriteLine(line);
             }
+        }
+
+        [Theory]
+        [InlineData(100_000, 1, 15)]
+        [InlineData(1_000_000, 1, 15)]
+        public void ChainEqualityComparer_Tests(int count, int lengthFrom, long lengthTo)
+        {
+            var comparer = new TestChainEqualityComparerDecorator(new ChainEqualityComparer());
+
+            ChainEqualityComparer_WithDecorator_Tests(comparer, count, lengthFrom, lengthTo);
+        }
+
+        [Theory]
+        [InlineData(100_000, 1, 15)]
+        [InlineData(1_000_000, 1, 15)]
+        public void ChainEqualityComparer_Old_Tests(int count, int lengthFrom, long lengthTo)
+        {
+            var comparer = new TestChainEqualityComparerDecorator(new ChainEqualityComparer_Old());
+
+            ChainEqualityComparer_WithDecorator_Tests(comparer, count, lengthFrom, lengthTo);
         }
 
         private List<string>[] GenerateKeys(int count, int length, Random random)
