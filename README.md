@@ -4,6 +4,35 @@ Minimalistic and fast profiling library for .NET
 [![Build Status](https://api.travis-ci.com/r-alekseev/Profiler.svg?token=6vyZfrof99dSqe746sJ2&branch=master)](https://travis-ci.com/r-alekseev/Profiler)
 [![NuGet version (Profiler)](https://img.shields.io/nuget/v/Profiler.svg?style=flat)](https://www.nuget.org/packages/Profiler/)
 
+## Configuration
+
+### Default
+
+Example writing traces and  to output window like ```Debug.WriteLine```:
+
+```csharp
+var profiler = new ProfilerConfiguration()
+    .CreateProfiler()
+```
+
+### Serilog
+
+see [Profiler.Serilog](https://github.com/r-alekseev/Profiler.Serilog) 
+
+Example writing profiling traces and reports to structured events in Serilog:
+
+```csharp
+
+var profiler = new ProfilerConfiguration()
+    .UseSerilogTraceWriter(settings => settings
+        .UseLogEventLevel(LogEventLevel.Verbose)
+        .UseLogger(logger))
+    .UseSerilogReportWriter(settings => settings
+        .UseLogEventLevel(LogEventLevel.Information)
+        .UseLogger(logger))
+    .CreateProfiler();
+```
+
 ## Usage
 
 ### Sequential

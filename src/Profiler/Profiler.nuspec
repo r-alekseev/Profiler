@@ -5,7 +5,7 @@
         <id>Profiler</id>
         
         <!-- The package version number that is used when resolving dependencies -->
-        <version>0.1.3</version>
+        <version>0.2.0</version>
         
         <!-- Authors contain text that appears directly on the gallery -->
         <authors>Roman Alekseev</authors>
@@ -39,10 +39,10 @@
             The description can be used in package manager UI. Note that the
             nuget.org gallery uses information you add in the portal. 
         -->
-        <description>Minimalistic and fast profiling library for .NET</description>
+        <description>Minimalistic and fast profiling library for .Net Core</description>
          
         <!-- Copyright information -->
-        <copyright>Copyright © 2019 Roman Alekseev</copyright>
+        <copyright>Copyright © 2019 - 2020 Roman Alekseev</copyright>
         
         <!-- Tags appear in the gallery and can be used for tag searches -->
         <tags>dotnet profiler performance</tags>
@@ -56,6 +56,6 @@
     </metadata>
 
     <files>
-        <file src="bin/Release/netstandard2.0/Profiler.dll" target="lib/netstandard2.0" />
+        <file src="bin/Release/netstandard2.1/Profiler.dll" target="lib/netstandard2.1" />
     </files>
 </package>
