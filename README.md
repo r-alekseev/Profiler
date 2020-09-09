@@ -8,7 +8,7 @@ Minimalistic and fast profiling library for .NET
 
 ### Default
 
-Example writing traces and  to output window like ```Debug.WriteLine```:
+Example writing traces and reports to output window like ```Debug.WriteLine```:
 
 ```csharp
 var profiler = new ProfilerConfiguration()
